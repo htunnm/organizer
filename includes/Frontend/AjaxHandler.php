@@ -8,6 +8,7 @@
 namespace Organizer\Frontend;
 
 use Organizer\Model\DiscountCode;
+use Organizer\Frontend\Shortcodes;
 
 /**
  * Class AjaxHandler
@@ -20,6 +21,8 @@ class AjaxHandler {
 	public static function init() {
 		add_action( 'wp_ajax_organizer_validate_discount', array( __CLASS__, 'validate_discount' ) );
 		add_action( 'wp_ajax_nopriv_organizer_validate_discount', array( __CLASS__, 'validate_discount' ) );
+		add_action( 'wp_ajax_organizer_load_calendar', array( __CLASS__, 'load_calendar' ) );
+		add_action( 'wp_ajax_nopriv_organizer_load_calendar', array( __CLASS__, 'load_calendar' ) );
 	}
 
 	/**
@@ -66,5 +69,26 @@ class AjaxHandler {
 				'message'   => __( 'Code applied!', 'organizer' ),
 			)
 		);
+	}
+
+	/**
+	 * Load calendar via AJAX.
+	 */
+	public static function load_calendar() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$limit = isset( $_GET['limit'] ) ? absint( $_GET['limit'] ) : 10;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$offset = isset( $_GET['offset'] ) ? absint( $_GET['offset'] ) : 0;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$category = isset( $_GET['category'] ) ? sanitize_text_field( wp_unslash( $_GET['category'] ) ) : '';
+
+		$atts = array(
+			'limit'    => $limit,
+			'offset'   => $offset,
+			'category' => $category,
+		);
+
+		$html = Shortcodes::render_calendar( $atts );
+		wp_send_json_success( array( 'html' => $html ) );
 	}
 }
