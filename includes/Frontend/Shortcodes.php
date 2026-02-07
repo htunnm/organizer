@@ -47,18 +47,43 @@ class Shortcodes {
 
 		$atts = shortcode_atts(
 			array(
-				'limit'    => 10,
-				'category' => '',
+				'limit'       => 10,
+				'category'    => '',
+				'show_search' => 'no',
 			),
 			$atts,
 			'organizer_calendar'
 		);
 
+		$filters = array();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_GET['organizer_search'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$filters['keyword'] = sanitize_text_field( wp_unslash( $_GET['organizer_search'] ) );
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_GET['organizer_start_date'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$filters['start_date'] = sanitize_text_field( wp_unslash( $_GET['organizer_start_date'] ) );
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_GET['organizer_end_date'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$filters['end_date'] = sanitize_text_field( wp_unslash( $_GET['organizer_end_date'] ) );
+		}
+
 		// Fetch upcoming sessions.
 		// In a real calendar, we'd fetch by date range. For now, we list upcoming sessions.
-		$sessions = Session::get_all( (int) $atts['limit'], 0, 'start_datetime', 'ASC', sanitize_text_field( $atts['category'] ) );
+		$sessions = Session::get_all( (int) $atts['limit'], 0, 'start_datetime', 'ASC', sanitize_text_field( $atts['category'] ), $filters );
 
 		ob_start();
+		if ( 'yes' === $atts['show_search'] ) {
+			$search_view = ORGANIZER_PATH . 'includes/Frontend/views/search-form.php';
+			if ( file_exists( $search_view ) ) {
+				include $search_view;
+			}
+		}
+
 		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/calendar.php';
 		if ( file_exists( $view_file ) ) {
 			include $view_file;

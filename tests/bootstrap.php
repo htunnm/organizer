@@ -557,6 +557,9 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 			public function prepare( $query, ...$args ) {
 				return $query;
 			}
+			public function esc_like( $text ) {
+				return addcslashes( $text, '_%\\' );
+			}
 			public function get_var( $query = null, $x = 0, $y = 0 ) {
 				return $this->get_var_return;
 			}

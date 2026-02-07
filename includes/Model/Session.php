@@ -75,9 +75,10 @@ class Session {
 	 * @param string $orderby Column to sort by.
 	 * @param string $order   Sort order.
 	 * @param string $category_slug Category slug to filter by.
+	 * @param array  $filters       Additional filters (keyword, start_date, end_date).
 	 * @return array List of sessions.
 	 */
-	public static function get_all( $limit = 20, $offset = 0, $orderby = 'start_datetime', $order = 'ASC', $category_slug = '' ) {
+	public static function get_all( $limit = 20, $offset = 0, $orderby = 'start_datetime', $order = 'ASC', $category_slug = '', $filters = array() ) {
 		global $wpdb;
 		$table_name = self::get_table_name();
 
@@ -87,23 +88,44 @@ class Session {
 		}
 		$order = ( 'DESC' === strtoupper( $order ) ) ? 'DESC' : 'ASC';
 
+		$where = array( '1=1' );
+		$join  = array();
+		$args  = array();
+
 		if ( ! empty( $category_slug ) ) {
 			$term = get_term_by( 'slug', $category_slug, 'organizer_category' );
 			if ( $term ) {
-				// Join with WP term tables.
-				$sql = "SELECT s.* FROM $table_name s
-					INNER JOIN {$wpdb->prefix}term_relationships tr ON s.event_id = tr.object_id
-					INNER JOIN {$wpdb->prefix}term_taxonomy tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-					WHERE tt.term_id = %d
-					ORDER BY s.$orderby $order LIMIT %d OFFSET %d";
-
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-				return $wpdb->get_results( $wpdb->prepare( $sql, $term->term_id, $limit, $offset ), ARRAY_A );
+				$join[]  = "INNER JOIN {$wpdb->prefix}term_relationships tr ON s.event_id = tr.object_id";
+				$join[]  = "INNER JOIN {$wpdb->prefix}term_taxonomy tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
+				$where[] = 'tt.term_id = %d';
+				$args[]  = $term->term_id;
 			}
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name ORDER BY $orderby $order LIMIT %d OFFSET %d", $limit, $offset ), ARRAY_A );
+		if ( ! empty( $filters['keyword'] ) ) {
+			$join[]  = "INNER JOIN {$wpdb->prefix}posts p ON s.event_id = p.ID";
+			$where[] = 'p.post_title LIKE %s';
+			$args[]  = '%' . $wpdb->esc_like( $filters['keyword'] ) . '%';
+		}
+
+		if ( ! empty( $filters['start_date'] ) ) {
+			$where[] = 's.start_datetime >= %s';
+			$args[]  = $filters['start_date'] . ' 00:00:00';
+		}
+
+		if ( ! empty( $filters['end_date'] ) ) {
+			$where[] = 's.end_datetime <= %s';
+			$args[]  = $filters['end_date'] . ' 23:59:59';
+		}
+
+		$where_sql = implode( ' AND ', $where );
+		$join_sql  = implode( ' ', array_unique( $join ) );
+		$sql       = "SELECT s.* FROM $table_name s $join_sql WHERE $where_sql ORDER BY s.$orderby $order LIMIT %d OFFSET %d";
+		$args[]    = $limit;
+		$args[]    = $offset;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		return $wpdb->get_results( $wpdb->prepare( $sql, $args ), ARRAY_A );
 	}
 
 	/**

@@ -57,4 +57,16 @@ class ShortcodesTest extends \PHPUnit\Framework\TestCase {
 		$this->assertStringContainsString( 'organizer-calendar', $output );
 		$this->assertStringContainsString( 'Event Title 10', $output );
 	}
+
+	/**
+	 * Test render_calendar shows search form.
+	 */
+	public function test_render_calendar_shows_search() {
+		global $wpdb;
+		$wpdb->get_results_return = array();
+
+		$output = Shortcodes::render_calendar( array( 'show_search' => 'yes' ) );
+
+		$this->assertStringContainsString( 'organizer-search-form', $output );
+	}
 }
