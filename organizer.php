@@ -17,6 +17,7 @@ use Organizer\Admin\DashboardWidget;
 use Organizer\Blocks\CalendarBlock;
 use Organizer\Admin\TagCloudWidget;
 use Organizer\Admin\EventDuplicator;
+use Organizer\Admin\ImportPage;
 use Organizer\Admin\DiscountCodesPage;
 use Organizer\Admin\ExportHandler;
 use Organizer\Admin\MetaBox;
@@ -98,6 +99,7 @@ class Plugin {
 		DiscountCodesPage::init();
 		AjaxHandler::init();
 		EventDuplicator::init();
+		ImportPage::init();
 		CalendarBlock::init();
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
