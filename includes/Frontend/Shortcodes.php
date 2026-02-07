@@ -160,6 +160,26 @@ class Shortcodes {
 		$current_user  = wp_get_current_user();
 		$registrations = Registration::get_by_user_email( $current_user->user_email );
 
+		$upcoming = array();
+		$past     = array();
+		$now      = current_time( 'mysql' );
+
+		foreach ( $registrations as $reg ) {
+			$event_date = $reg['created_at']; // Default to registration date.
+			if ( ! empty( $reg['session_id'] ) ) {
+				$session = Session::get( $reg['session_id'] );
+				if ( $session ) {
+					$event_date = $session->start_datetime;
+				}
+			}
+
+			if ( $event_date >= $now ) {
+				$upcoming[] = $reg;
+			} else {
+				$past[] = $reg;
+			}
+		}
+
 		ob_start();
 		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/user-dashboard.php';
 		if ( file_exists( $view_file ) ) {

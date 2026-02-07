@@ -48,6 +48,8 @@ class UserDashboardTest extends \PHPUnit\Framework\TestCase {
 
 		$this->assertStringContainsString( 'organizer-user-dashboard', $output );
 		$this->assertStringContainsString( 'Event Title 10', $output );
+		$this->assertStringContainsString( 'Upcoming Events', $output );
+		$this->assertStringContainsString( 'Past Events', $output );
 	}
 
 	/**
