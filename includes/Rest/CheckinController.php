@@ -47,7 +47,8 @@ class CheckinController extends WP_REST_Controller {
 	 * @return bool
 	 */
 	public function permissions_check() {
-		return current_user_can( 'edit_posts' );
+		// Ensure the user has the capability to manage options (admin) or a specific organizer capability.
+		return current_user_can( 'manage_options' );
 	}
 
 	/**
