@@ -16,6 +16,7 @@ use Organizer\Admin\CheckinHandler;
 use Organizer\Admin\DashboardWidget;
 use Organizer\Blocks\CalendarBlock;
 use Organizer\Admin\TagCloudWidget;
+use Organizer\Admin\EventSearchWidget;
 use Organizer\Admin\EventDuplicator;
 use Organizer\Admin\ImportPage;
 use Organizer\Admin\DiscountCodesPage;
@@ -114,6 +115,7 @@ class Plugin {
 			'widgets_init',
 			function () {
 				register_widget( TagCloudWidget::class );
+				register_widget( EventSearchWidget::class );
 			}
 		);
 	}
