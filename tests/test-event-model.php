@@ -38,5 +38,8 @@ class EventModelTest extends \PHPUnit\Framework\TestCase {
 		$this->assertEquals( 'dashicons-calendar-alt', $args['menu_icon'] );
 		$this->assertContains( 'title', $args['supports'] );
 		$this->assertContains( 'editor', $args['supports'] );
+
+		$this->assertArrayHasKey( 'organizer_category', WPMocks::$taxonomies );
+		$this->assertContains( 'organizer_event', WPMocks::$taxonomies['organizer_category']['object_type'] );
 	}
 }

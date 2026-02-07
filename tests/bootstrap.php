@@ -25,6 +25,7 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		public static $dashboard_widgets = array();
 		public static $shortcodes        = array();
 		public static $styles            = array();
+		public static $taxonomies        = array();
 
 		public static function reset() {
 			self::$actions           = array();
@@ -37,6 +38,7 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 			self::$dashboard_widgets = array();
 			self::$shortcodes        = array();
 			self::$styles            = array();
+			self::$taxonomies        = array();
 		}
 	}
 
@@ -211,6 +213,15 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'register_taxonomy' ) ) {
+		function register_taxonomy( $taxonomy, $object_type, $args = array() ) {
+			WPMocks::$taxonomies[ $taxonomy ] = array(
+				'object_type' => $object_type,
+				'args'        => $args,
+			);
+		}
+	}
+
 	if ( ! function_exists( 'dbDelta' ) ) {
 		function dbDelta( $sql ) {
 			WPMocks::$db_delta[] = $sql;
@@ -296,6 +307,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 	if ( ! function_exists( 'wp_upload_dir' ) ) {
 		function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false ) {
 			return array( 'basedir' => sys_get_temp_dir() );
+		}
+	}
+
+	if ( ! function_exists( 'get_term_by' ) ) {
+		function get_term_by( $field, $value, $taxonomy, $output = OBJECT, $filter = 'raw' ) {
+			return false; // Mock return false by default.
 		}
 	}
 

@@ -74,9 +74,10 @@ class Session {
 	 * @param int    $offset  Offset.
 	 * @param string $orderby Column to sort by.
 	 * @param string $order   Sort order.
+	 * @param string $category_slug Category slug to filter by.
 	 * @return array List of sessions.
 	 */
-	public static function get_all( $limit = 20, $offset = 0, $orderby = 'start_datetime', $order = 'ASC' ) {
+	public static function get_all( $limit = 20, $offset = 0, $orderby = 'start_datetime', $order = 'ASC', $category_slug = '' ) {
 		global $wpdb;
 		$table_name = self::get_table_name();
 
@@ -85,6 +86,21 @@ class Session {
 			$orderby = 'start_datetime';
 		}
 		$order = ( 'DESC' === strtoupper( $order ) ) ? 'DESC' : 'ASC';
+
+		if ( ! empty( $category_slug ) ) {
+			$term = get_term_by( 'slug', $category_slug, 'organizer_category' );
+			if ( $term ) {
+				// Join with WP term tables.
+				$sql = "SELECT s.* FROM $table_name s
+					INNER JOIN {$wpdb->prefix}term_relationships tr ON s.event_id = tr.object_id
+					INNER JOIN {$wpdb->prefix}term_taxonomy tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+					WHERE tt.term_id = %d
+					ORDER BY s.$orderby $order LIMIT %d OFFSET %d";
+
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+				return $wpdb->get_results( $wpdb->prepare( $sql, $term->term_id, $limit, $offset ), ARRAY_A );
+			}
+		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name ORDER BY $orderby $order LIMIT %d OFFSET %d", $limit, $offset ), ARRAY_A );

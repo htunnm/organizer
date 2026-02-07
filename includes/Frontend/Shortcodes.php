@@ -40,7 +40,8 @@ class Shortcodes {
 
 		$atts = shortcode_atts(
 			array(
-				'limit' => 10,
+				'limit'    => 10,
+				'category' => '',
 			),
 			$atts,
 			'organizer_calendar'
@@ -48,7 +49,7 @@ class Shortcodes {
 
 		// Fetch upcoming sessions.
 		// In a real calendar, we'd fetch by date range. For now, we list upcoming sessions.
-		$sessions = Session::get_all( (int) $atts['limit'], 0, 'start_datetime', 'ASC' );
+		$sessions = Session::get_all( (int) $atts['limit'], 0, 'start_datetime', 'ASC', sanitize_text_field( $atts['category'] ) );
 
 		ob_start();
 		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/calendar.php';

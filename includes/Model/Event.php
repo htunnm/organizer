@@ -68,6 +68,34 @@ class Event {
 		);
 
 		register_post_type( 'organizer_event', $args );
+
+		// Register Taxonomy.
+		$tax_labels = array(
+			'name'              => _x( 'Categories', 'taxonomy general name', 'organizer' ),
+			'singular_name'     => _x( 'Category', 'taxonomy singular name', 'organizer' ),
+			'search_items'      => __( 'Search Categories', 'organizer' ),
+			'all_items'         => __( 'All Categories', 'organizer' ),
+			'parent_item'       => __( 'Parent Category', 'organizer' ),
+			'parent_item_colon' => __( 'Parent Category:', 'organizer' ),
+			'edit_item'         => __( 'Edit Category', 'organizer' ),
+			'update_item'       => __( 'Update Category', 'organizer' ),
+			'add_new_item'      => __( 'Add New Category', 'organizer' ),
+			'new_item_name'     => __( 'New Category Name', 'organizer' ),
+			'menu_name'         => __( 'Categories', 'organizer' ),
+		);
+
+		register_taxonomy(
+			'organizer_category',
+			array( 'organizer_event' ),
+			array(
+				'hierarchical' => true,
+				'labels'       => $tax_labels,
+				'show_ui'      => true,
+				'show_in_rest' => true,
+				'query_var'    => true,
+				'rewrite'      => array( 'slug' => 'organizer-category' ),
+			)
+		);
 	}
 
 	/**
