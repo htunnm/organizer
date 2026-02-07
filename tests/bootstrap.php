@@ -217,6 +217,10 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 	if ( ! function_exists( 'wp_enqueue_scripts' ) ) {
 		function wp_enqueue_scripts() {}
 	}
+	if ( ! function_exists( 'admin_enqueue_scripts' ) ) {
+		function admin_enqueue_scripts() {}
+	}
+
 	if ( ! function_exists( 'current_user_can' ) ) {
 		function current_user_can() {
 			return true; }
