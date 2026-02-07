@@ -186,6 +186,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'esc_attr_e' ) ) {
+		function esc_attr_e( $text, $domain = 'default' ) {
+			echo $text;
+		}
+	}
+
 	if ( ! function_exists( 'register_setting' ) ) {
 		function register_setting() {}
 	}
@@ -304,6 +310,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'esc_url' ) ) {
+		function esc_url( $url, $protocols = null, $_context = null ) {
+			return $url;
+		}
+	}
+
 	if ( ! function_exists( 'wp_upload_dir' ) ) {
 		function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false ) {
 			return array( 'basedir' => sys_get_temp_dir() );
@@ -364,6 +376,21 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 	if ( ! function_exists( 'wp_get_referer' ) ) {
 		function wp_get_referer() {
 			return 'http://example.com/referer';
+		}
+	}
+
+	if ( ! function_exists( 'is_user_logged_in' ) ) {
+		function is_user_logged_in() {
+			return true;
+		}
+	}
+
+	if ( ! function_exists( 'wp_get_current_user' ) ) {
+		function wp_get_current_user() {
+			$user             = new stdClass();
+			$user->ID         = 1;
+			$user->user_email = 'test@example.com';
+			return $user;
 		}
 	}
 

@@ -1,0 +1,15 @@
+.organizer-user-dashboard {
+	margin: 20px 0;
+}
+
+.organizer-dashboard-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.organizer-dashboard-table th,
+.organizer-dashboard-table td {
+	border: 1px solid #ddd;
+	padding: 10px;
+	text-align: left;
+}

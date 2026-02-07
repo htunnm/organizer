@@ -8,6 +8,7 @@
 namespace Organizer\Frontend;
 
 use Organizer\Model\Session;
+use Organizer\Model\Registration;
 
 /**
  * Class Shortcodes
@@ -20,6 +21,7 @@ class Shortcodes {
 	public static function init() {
 		add_shortcode( 'organizer_calendar', array( __CLASS__, 'render_calendar' ) );
 		add_shortcode( 'organizer_registration_form', array( __CLASS__, 'render_registration_form' ) );
+		add_shortcode( 'organizer_user_dashboard', array( __CLASS__, 'render_user_dashboard' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 	}
 
@@ -28,6 +30,7 @@ class Shortcodes {
 	 */
 	public static function enqueue_assets() {
 		wp_register_style( 'organizer-calendar', ORGANIZER_URL . 'assets/css/calendar.css', array(), ORGANIZER_VERSION );
+		wp_register_style( 'organizer-dashboard', ORGANIZER_URL . 'assets/css/dashboard.css', array(), ORGANIZER_VERSION );
 	}
 
 	/**
@@ -91,6 +94,31 @@ class Shortcodes {
 			include $view_file;
 		} else {
 			echo '<p>' . esc_html__( 'Registration form view not found.', 'organizer' ) . '</p>';
+		}
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render the user dashboard shortcode.
+	 *
+	 * @return string HTML output.
+	 */
+	public static function render_user_dashboard() {
+		if ( ! is_user_logged_in() ) {
+			return '<p>' . esc_html__( 'Please log in to view your dashboard.', 'organizer' ) . '</p>';
+		}
+
+		wp_enqueue_style( 'organizer-dashboard' );
+
+		$current_user  = wp_get_current_user();
+		$registrations = Registration::get_by_user_email( $current_user->user_email );
+
+		ob_start();
+		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/user-dashboard.php';
+		if ( file_exists( $view_file ) ) {
+			include $view_file;
+		} else {
+			echo '<p>' . esc_html__( 'Dashboard view not found.', 'organizer' ) . '</p>';
 		}
 		return ob_get_clean();
 	}

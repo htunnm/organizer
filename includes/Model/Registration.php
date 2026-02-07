@@ -101,6 +101,19 @@ class Registration {
 	}
 
 	/**
+	 * Get registrations by user email.
+	 *
+	 * @param string $email User email.
+	 * @return array List of registrations.
+	 */
+	public static function get_by_user_email( $email ) {
+		global $wpdb;
+		$table_name = self::get_table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name WHERE email = %s ORDER BY created_at DESC", $email ), ARRAY_A );
+	}
+
+	/**
 	 * Count all registrations.
 	 *
 	 * @return int Count.

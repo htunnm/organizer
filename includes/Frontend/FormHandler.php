@@ -25,6 +25,7 @@ class FormHandler {
 	public static function init() {
 		add_action( 'admin_post_organizer_register', array( __CLASS__, 'handle_registration' ) );
 		add_action( 'admin_post_nopriv_organizer_register', array( __CLASS__, 'handle_registration' ) );
+		add_action( 'admin_post_organizer_cancel_registration', array( __CLASS__, 'handle_cancellation' ) );
 	}
 
 	/**
@@ -99,6 +100,50 @@ class FormHandler {
 		$email_service->send( $email, $subject, $message, array(), $attachments );
 
 		wp_safe_redirect( add_query_arg( 'organizer_registration', 'success', wp_get_referer() ) );
+		exit;
+	}
+
+	/**
+	 * Handle registration cancellation.
+	 */
+	public static function handle_cancellation() {
+		if ( ! is_user_logged_in() ) {
+			wp_die( esc_html__( 'You must be logged in to cancel a registration.', 'organizer' ) );
+		}
+
+		if ( ! isset( $_POST['organizer_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['organizer_nonce'] ) ), 'organizer_cancel_nonce' ) ) {
+			wp_die( esc_html__( 'Invalid nonce.', 'organizer' ) );
+		}
+
+		$registration_id = isset( $_POST['registration_id'] ) ? absint( $_POST['registration_id'] ) : 0;
+
+		if ( empty( $registration_id ) ) {
+			wp_safe_redirect( add_query_arg( 'organizer_cancellation', 'error', wp_get_referer() ) );
+			exit;
+		}
+
+		// Verify ownership.
+		global $wpdb;
+		$table_name = Registration::get_table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$registration = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $registration_id ) );
+
+		$current_user = wp_get_current_user();
+
+		if ( ! $registration || $registration->email !== $current_user->user_email ) {
+			wp_die( esc_html__( 'You are not authorized to cancel this registration.', 'organizer' ) );
+		}
+
+		// Update status to cancelled.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->update( $table_name, array( 'status' => 'cancelled' ), array( 'id' => $registration_id ) );
+
+		if ( false === $result ) {
+			wp_safe_redirect( add_query_arg( 'organizer_cancellation', 'error', wp_get_referer() ) );
+			exit;
+		}
+
+		wp_safe_redirect( add_query_arg( 'organizer_cancellation', 'success', wp_get_referer() ) );
 		exit;
 	}
 }
