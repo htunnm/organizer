@@ -115,7 +115,7 @@ class RegistrationController extends WP_REST_Controller {
 			// Send waitlist email.
 			$email_service    = new GmailAdapter();
 			$template_service = new TemplateService();
-			$template         = $template_service->get_template( 'waitlist_confirmation' );
+			$template         = $template_service->get_template( 'waitlist_confirmation', $data['event_id'] );
 			$placeholders     = array(
 				'attendee_name' => esc_html( $data['name'] ),
 				'event_title'   => get_the_title( $data['event_id'] ),
@@ -156,7 +156,7 @@ class RegistrationController extends WP_REST_Controller {
 		// Send confirmation email.
 		$email_service    = new GmailAdapter();
 		$template_service = new TemplateService();
-		$template         = $template_service->get_template( 'registration_confirmation' );
+		$template         = $template_service->get_template( 'registration_confirmation', $data['event_id'] );
 		$placeholders     = array(
 			'ticket_link'   => home_url( '?organizer_ticket=1&token=' . $token ), // Assuming a page exists or using query var.
 			'attendee_name' => esc_html( $data['name'] ),

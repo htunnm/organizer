@@ -145,6 +145,42 @@ class MetaBox {
 			<?php self::render_custom_field_row( 'INDEX', array() ); ?>
 		</script>
 		<?php
+		// Email Notifications Section.
+		?>
+		<hr>
+		<details>
+			<summary style="cursor: pointer; font-weight: bold; padding: 5px 0;"><?php esc_html_e( 'Email Notifications (Override Defaults)', 'organizer' ); ?></summary>
+			<div style="padding: 10px; border: 1px solid #ddd; margin-top: 5px;">
+				<?php
+				$email_types = array(
+					'registration_confirmation' => __( 'Registration Confirmation', 'organizer' ),
+					'waitlist_confirmation'     => __( 'Waitlist Confirmation', 'organizer' ),
+					'waitlist_promotion'        => __( 'Waitlist Promotion', 'organizer' ),
+					'event_reminder'            => __( 'Event Reminder', 'organizer' ),
+				);
+
+				foreach ( $email_types as $key => $label ) {
+					$subject = get_post_meta( $post->ID, "_organizer_email_{$key}_subject", true );
+					$message = get_post_meta( $post->ID, "_organizer_email_{$key}_message", true );
+					?>
+					<div style="margin-bottom: 15px;">
+						<strong><?php echo esc_html( $label ); ?></strong>
+						<p>
+							<label for="organizer_email_<?php echo esc_attr( $key ); ?>_subject"><?php esc_html_e( 'Subject:', 'organizer' ); ?></label><br>
+							<input type="text" name="organizer_email[<?php echo esc_attr( $key ); ?>][subject]" id="organizer_email_<?php echo esc_attr( $key ); ?>_subject" value="<?php echo esc_attr( $subject ); ?>" class="widefat">
+						</p>
+						<p>
+							<label for="organizer_email_<?php echo esc_attr( $key ); ?>_message"><?php esc_html_e( 'Message:', 'organizer' ); ?></label><br>
+							<textarea name="organizer_email[<?php echo esc_attr( $key ); ?>][message]" id="organizer_email_<?php echo esc_attr( $key ); ?>_message" rows="3" class="widefat"><?php echo esc_textarea( $message ); ?></textarea>
+						</p>
+					</div>
+					<?php
+				}
+				?>
+			</div>
+		</details>
+
+		<?php
 	}
 
 	/**
@@ -220,6 +256,17 @@ class MetaBox {
 			update_post_meta( $post_id, '_organizer_custom_fields', array_values( $custom_fields ) );
 		} else {
 			delete_post_meta( $post_id, '_organizer_custom_fields' );
+		}
+
+		if ( isset( $_POST['organizer_email'] ) && is_array( $_POST['organizer_email'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$organizer_emails = wp_unslash( $_POST['organizer_email'] );
+			foreach ( $organizer_emails as $key => $data ) {
+				$subject = isset( $data['subject'] ) ? sanitize_text_field( $data['subject'] ) : '';
+				$message = isset( $data['message'] ) ? sanitize_textarea_field( $data['message'] ) : '';
+				update_post_meta( $post_id, "_organizer_email_{$key}_subject", $subject );
+				update_post_meta( $post_id, "_organizer_email_{$key}_message", $message );
+			}
 		}
 	}
 }

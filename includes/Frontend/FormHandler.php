@@ -176,7 +176,7 @@ class FormHandler {
 		// Send confirmation email with ICS.
 		$email_service    = new GmailAdapter();
 		$template_service = new TemplateService();
-		$template         = $template_service->get_template( 'registration_confirmation' );
+		$template         = $template_service->get_template( 'registration_confirmation', $event_id );
 		$placeholders     = array(
 			'ticket_link'   => home_url( '?organizer_ticket=1&token=' . $token ),
 			'attendee_name' => esc_html( $name ),
@@ -238,7 +238,7 @@ class FormHandler {
 		if ( $registration ) {
 			$email_service    = new GmailAdapter();
 			$template_service = new TemplateService();
-			$template         = $template_service->get_template( 'registration_confirmation' );
+			$template         = $template_service->get_template( 'registration_confirmation', $registration->event_id );
 			$placeholders     = array(
 				'attendee_name' => esc_html( $registration->name ),
 				'event_title'   => get_the_title( $registration->event_id ),

@@ -15,10 +15,22 @@ class TemplateService {
 	/**
 	 * Get email template.
 	 *
-	 * @param string $type Template type key.
+	 * @param string $type     Template type key.
+	 * @param int    $event_id Event ID (optional).
 	 * @return array Array with 'subject' and 'message'.
 	 */
-	public function get_template( $type ) {
+	public function get_template( $type, $event_id = 0 ) {
+		if ( $event_id > 0 ) {
+			$custom_subject = get_post_meta( $event_id, "_organizer_email_{$type}_subject", true );
+			$custom_message = get_post_meta( $event_id, "_organizer_email_{$type}_message", true );
+			if ( ! empty( $custom_subject ) && ! empty( $custom_message ) ) {
+				return array(
+					'subject' => $custom_subject,
+					'message' => $custom_message,
+				);
+			}
+		}
+
 		$options = get_option( 'organizer_email_templates', array() );
 		$subject = isset( $options[ $type . '_subject' ] ) ? $options[ $type . '_subject' ] : '';
 		$message = isset( $options[ $type . '_message' ] ) ? $options[ $type . '_message' ] : '';

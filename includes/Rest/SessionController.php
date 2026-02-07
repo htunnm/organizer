@@ -106,7 +106,7 @@ class SessionController extends WP_REST_Controller {
 		$attendees        = Registration::get_attendees( $session->event_id, $id );
 		$email_service    = new GmailAdapter();
 		$template_service = new TemplateService();
-		$template         = $template_service->get_template( 'session_cancelled' );
+		$template         = $template_service->get_template( 'session_cancelled', $session->event_id );
 		$placeholders     = array(
 			'event_title' => get_the_title( $session->event_id ),
 			'start_date'  => $session->start_datetime,

@@ -80,7 +80,7 @@ class ReminderService {
 			$event_title = get_the_title( $session->event_id );
 
 			$template_service = new TemplateService();
-			$template         = $template_service->get_template( 'event_reminder' );
+			$template         = $template_service->get_template( 'event_reminder', $session->event_id );
 			$placeholders     = array(
 				'event_title' => $event_title,
 				'start_date'  => $session->start_datetime,

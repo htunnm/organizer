@@ -71,7 +71,7 @@ class WaitlistService {
 		Logger::log( 'waitlist_promotion', "Promoted user $next_user->id from waitlist", $event_id, $session_id );
 
 		$template_service = new TemplateService();
-		$template         = $template_service->get_template( 'waitlist_promotion' );
+		$template         = $template_service->get_template( 'waitlist_promotion', $event_id );
 		$placeholders     = array(
 			'attendee_name' => esc_html( $next_user->name ),
 			'event_title'   => get_the_title( $event_id ),
