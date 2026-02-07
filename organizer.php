@@ -33,6 +33,7 @@ use Organizer\Model\Waitlist;
 use Organizer\Rest\RegistrationController;
 use Organizer\Rest\RSVPController;
 use Organizer\Rest\SessionController;
+use Organizer\Rest\CheckinController;
 use Organizer\Rest\WaitlistController;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -69,6 +70,8 @@ class Plugin {
 				$waitlist_controller->register_routes();
 				$session_controller = new SessionController();
 				$session_controller->register_routes();
+				$checkin_controller = new CheckinController();
+				$checkin_controller->register_routes();
 			}
 		);
 		Settings::init();

@@ -76,4 +76,52 @@ class SessionControllerTest extends \PHPUnit\Framework\TestCase {
 		$this->assertEquals( 'attendee@example.com', WPMocks::$sent_emails[0]['to'] );
 		$this->assertStringContainsString( 'Session Cancelled', WPMocks::$sent_emails[0]['subject'] );
 	}
+
+	/**
+	 * Test get_item returns session with venue.
+	 */
+	public function test_get_item_returns_session() {
+		$controller = new SessionController();
+		$request    = new WP_REST_Request();
+		$request->set_param( 'id', 1 );
+
+		global $wpdb;
+		$wpdb->get_row_return = (object) array(
+			'id'             => 1,
+			'event_id'       => 10,
+			'status'         => 'scheduled',
+			'start_datetime' => '2023-10-01 10:00:00',
+		);
+
+		$response = $controller->get_item( $request );
+		$this->assertEquals( 1, $response->data['id'] );
+	}
+
+	/**
+	 * Test get_items returns list of sessions.
+	 */
+	public function test_get_items_returns_list() {
+		$controller = new SessionController();
+		$request    = new WP_REST_Request();
+
+		global $wpdb;
+		$wpdb->get_results_return = array(
+			array(
+				'id'             => 1,
+				'event_id'       => 10,
+				'status'         => 'scheduled',
+				'start_datetime' => '2023-10-01 10:00:00',
+			),
+			array(
+				'id'             => 2,
+				'event_id'       => 10,
+				'status'         => 'scheduled',
+				'start_datetime' => '2023-10-02 10:00:00',
+			),
+		);
+
+		$response = $controller->get_items( $request );
+		$this->assertCount( 2, $response->data );
+		$this->assertEquals( 1, $response->data[0]['id'] );
+	}
 }

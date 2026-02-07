@@ -76,6 +76,7 @@ class MetaBox {
 			$custom_fields = array();
 		}
 		$price = get_post_meta( $post->ID, '_organizer_event_price', true );
+		$venue = get_post_meta( $post->ID, '_organizer_event_venue', true );
 		?>
 		<p>
 			<label for="organizer_recurrence_type"><?php esc_html_e( 'Recurrence Type:', 'organizer' ); ?></label>
@@ -97,6 +98,10 @@ class MetaBox {
 		<p>
 			<label for="organizer_event_price"><?php esc_html_e( 'Price:', 'organizer' ); ?></label>
 			<input type="number" step="0.01" name="organizer_event_price" id="organizer_event_price" value="<?php echo esc_attr( $price ); ?>">
+		</p>
+		<p>
+			<label for="organizer_event_venue"><?php esc_html_e( 'Venue:', 'organizer' ); ?></label>
+			<input type="text" name="organizer_event_venue" id="organizer_event_venue" value="<?php echo esc_attr( $venue ); ?>" class="regular-text">
 		</p>
 		<div id="organizer_recurrence_options">
 			<p>
@@ -195,6 +200,11 @@ class MetaBox {
 		if ( isset( $_POST['organizer_event_price'] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			update_post_meta( $post_id, '_organizer_event_price', sanitize_text_field( wp_unslash( $_POST['organizer_event_price'] ) ) );
+		}
+
+		if ( isset( $_POST['organizer_event_venue'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			update_post_meta( $post_id, '_organizer_event_venue', sanitize_text_field( wp_unslash( $_POST['organizer_event_venue'] ) ) );
 		}
 
 		if ( isset( $_POST['organizer_custom_fields'] ) ) {

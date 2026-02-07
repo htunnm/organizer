@@ -159,4 +159,25 @@ class RegistrationControllerTest extends \PHPUnit\Framework\TestCase {
 		$this->assertNotEmpty( WPMocks::$sent_emails[0]['attachments'] );
 		$this->assertStringContainsString( 'invite.ics', WPMocks::$sent_emails[0]['attachments'][0] );
 	}
+
+	/**
+	 * Test get_items returns user registrations.
+	 */
+	public function test_get_items_returns_user_registrations() {
+		$controller = new RegistrationController();
+		$request    = new WP_REST_Request();
+
+		global $wpdb;
+		$wpdb->get_results_return = array(
+			array(
+				'id'       => 1,
+				'event_id' => 10,
+				'email'    => 'test@example.com',
+			),
+		);
+
+		$response = $controller->get_items( $request );
+		$this->assertCount( 1, $response->data );
+		$this->assertEquals( 1, $response->data[0]['id'] );
+	}
 }

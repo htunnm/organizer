@@ -45,8 +45,22 @@ class RegistrationController extends WP_REST_Controller {
 					'callback'            => array( $this, 'create_item' ),
 					'permission_callback' => '__return_true',
 				),
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_items' ),
+					'permission_callback' => array( $this, 'permissions_check' ),
+				),
 			)
 		);
+	}
+
+	/**
+	 * Check permissions.
+	 *
+	 * @return bool
+	 */
+	public function permissions_check() {
+		return is_user_logged_in();
 	}
 
 	/**
@@ -172,5 +186,17 @@ class RegistrationController extends WP_REST_Controller {
 				'message' => __( 'Registration successful', 'organizer' ),
 			)
 		);
+	}
+
+	/**
+	 * Get user registrations.
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return \WP_REST_Response Response object.
+	 */
+	public function get_items( $request ) {
+		$current_user  = wp_get_current_user();
+		$registrations = Registration::get_by_user_email( $current_user->user_email );
+		return rest_ensure_response( $registrations );
 	}
 }
