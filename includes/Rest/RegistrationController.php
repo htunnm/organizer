@@ -15,6 +15,7 @@ use Organizer\Model\Event;
 use Organizer\Services\Email\GmailAdapter;
 use Organizer\Services\IcsGenerator;
 use Organizer\Model\Session;
+use Organizer\Services\RateLimiter;
 
 /**
  * Class RegistrationController
@@ -53,6 +54,12 @@ class RegistrationController extends WP_REST_Controller {
 	 * @return \WP_REST_Response|WP_Error Response object.
 	 */
 	public function create_item( $request ) {
+		// Rate limiting.
+		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '127.0.0.1';
+		if ( ! RateLimiter::check( $ip ) ) {
+			return new WP_Error( 'rate_limit_exceeded', __( 'Too many requests. Please try again later.', 'organizer' ), array( 'status' => 429 ) );
+		}
+
 		$params = $request->get_params();
 
 		if ( empty( $params['event_id'] ) || empty( $params['name'] ) || empty( $params['email'] ) ) {

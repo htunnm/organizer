@@ -36,10 +36,19 @@ class WaitlistController extends WP_REST_Controller {
 				array(
 					'methods'             => 'POST',
 					'callback'            => array( $this, 'promote_item' ),
-					'permission_callback' => '__return_true',
+					'permission_callback' => array( $this, 'permissions_check' ),
 				),
 			)
 		);
+	}
+
+	/**
+	 * Check permissions.
+	 *
+	 * @return bool
+	 */
+	public function permissions_check() {
+		return current_user_can( 'edit_posts' );
 	}
 
 	/**

@@ -10,6 +10,7 @@ namespace Organizer\Rest;
 use WP_REST_Controller;
 use WP_Error;
 use Organizer\Model\RSVP;
+use Organizer\Services\RateLimiter;
 
 /**
  * Class RSVPController
@@ -48,6 +49,12 @@ class RSVPController extends WP_REST_Controller {
 	 * @return \WP_REST_Response|WP_Error Response object.
 	 */
 	public function create_item( $request ) {
+		// Rate limiting.
+		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '127.0.0.1';
+		if ( ! RateLimiter::check( $ip ) ) {
+			return new WP_Error( 'rate_limit_exceeded', __( 'Too many requests. Please try again later.', 'organizer' ), array( 'status' => 429 ) );
+		}
+
 		$params = $request->get_params();
 
 		if ( empty( $params['registration_id'] ) || empty( $params['response'] ) ) {

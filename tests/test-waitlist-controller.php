@@ -69,4 +69,12 @@ class WaitlistControllerTest extends \PHPUnit\Framework\TestCase {
 		$this->assertInstanceOf( 'WP_REST_Response', $response );
 		$this->assertTrue( $response->data['success'] );
 	}
+
+	/**
+	 * Test permissions_check returns true (mocked user has capability).
+	 */
+	public function test_permissions_check() {
+		$controller = new WaitlistController();
+		$this->assertTrue( $controller->permissions_check() );
+	}
 }

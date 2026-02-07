@@ -26,6 +26,7 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		public static $shortcodes        = array();
 		public static $styles            = array();
 		public static $taxonomies        = array();
+		public static $transients        = array();
 
 		public static function reset() {
 			self::$actions           = array();
@@ -39,6 +40,7 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 			self::$shortcodes        = array();
 			self::$styles            = array();
 			self::$taxonomies        = array();
+			self::$transients        = array();
 		}
 	}
 
@@ -225,6 +227,19 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 				'object_type' => $object_type,
 				'args'        => $args,
 			);
+		}
+	}
+
+	if ( ! function_exists( 'get_transient' ) ) {
+		function get_transient( $transient ) {
+			return isset( WPMocks::$transients[ $transient ] ) ? WPMocks::$transients[ $transient ] : false;
+		}
+	}
+
+	if ( ! function_exists( 'set_transient' ) ) {
+		function set_transient( $transient, $value, $expiration = 0 ) {
+			WPMocks::$transients[ $transient ] = $value;
+			return true;
 		}
 	}
 
