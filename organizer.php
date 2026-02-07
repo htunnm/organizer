@@ -14,6 +14,7 @@ namespace Organizer;
 
 use Organizer\Admin\CheckinHandler;
 use Organizer\Admin\DashboardWidget;
+use Organizer\Admin\DiscountCodesPage;
 use Organizer\Admin\ExportHandler;
 use Organizer\Admin\MetaBox;
 use Organizer\Admin\RegistrationsPage;
@@ -21,6 +22,7 @@ use Organizer\Admin\SessionsPage;
 use Organizer\Admin\Settings;
 use Organizer\Cli\RemindersCommand;
 use Organizer\Cli\ExpirationCommand;
+use Organizer\Frontend\AjaxHandler;
 use Organizer\Frontend\FormHandler;
 use Organizer\Frontend\Shortcodes;
 use Organizer\Model\Event;
@@ -30,6 +32,7 @@ use Organizer\Model\RegistrationMeta;
 use Organizer\Model\RSVP;
 use Organizer\Model\Session;
 use Organizer\Model\Waitlist;
+use Organizer\Model\DiscountCode;
 use Organizer\Rest\RegistrationController;
 use Organizer\Rest\RSVPController;
 use Organizer\Rest\SessionController;
@@ -83,6 +86,8 @@ class Plugin {
 		ExportHandler::init();
 		FormHandler::init();
 		CheckinHandler::init();
+		DiscountCodesPage::init();
+		AjaxHandler::init();
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'organizer', RemindersCommand::class );
@@ -102,6 +107,7 @@ class Plugin {
 		Session::create_table();
 		Log::create_table();
 		RegistrationMeta::create_table();
+		DiscountCode::create_table();
 		flush_rewrite_rules();
 	}
 

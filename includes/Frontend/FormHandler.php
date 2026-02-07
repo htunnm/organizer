@@ -17,6 +17,7 @@ use Organizer\Services\Email\TemplateService;
 use Organizer\Model\RegistrationMeta;
 use Organizer\Services\Payment\StripeService;
 use Organizer\Services\QrCodeService;
+use Organizer\Model\DiscountCode;
 
 /**
  * Class FormHandler
@@ -62,6 +63,35 @@ class FormHandler {
 
 		$price = (float) get_post_meta( $event_id, '_organizer_event_price', true );
 		if ( $price > 0 ) {
+			// Handle Discount.
+			$discount_code = isset( $_POST['discount_code'] ) ? sanitize_text_field( wp_unslash( $_POST['discount_code'] ) ) : '';
+			if ( ! empty( $discount_code ) ) {
+				$discount = DiscountCode::get_by_code( $discount_code );
+				if ( $discount ) {
+					// Validate expiration and limit.
+					$valid = true;
+					if ( ! empty( $discount->expires_at ) && strtotime( $discount->expires_at ) < time() ) {
+						$valid = false;
+					}
+					if ( $discount->usage_limit > 0 && $discount->usage_count >= $discount->usage_limit ) {
+						$valid = false;
+					}
+
+					if ( $valid ) {
+						$original_price = $price;
+						if ( 'percent' === $discount->type ) {
+							$price = $price - ( $price * ( $discount->amount / 100 ) );
+						} else {
+							$price = $price - $discount->amount;
+						}
+						$price                   = max( 0, $price );
+						$data['discount_code']   = $discount->code;
+						$data['discount_amount'] = (int) ( ( $original_price - $price ) * 100 ); // Store in cents.
+						DiscountCode::increment_usage( $discount->id );
+					}
+				}
+			}
+
 			$data['status'] = 'pending_payment';
 		}
 
@@ -92,7 +122,16 @@ class FormHandler {
 		}
 
 		// Handle Payment.
-		if ( $price > 0 ) {
+		if ( 0.0 === $price && isset( $data['discount_code'] ) ) {
+			// 100% discount, skip payment.
+			$data['status'] = 'confirmed';
+			// Update status in DB since we created it as pending_payment (or update logic flow).
+			// Actually, we created it above. Let's update it.
+			global $wpdb;
+			$table_name = Registration::get_table_name();
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->update( $table_name, array( 'status' => 'confirmed' ), array( 'id' => $id ) );
+		} elseif ( $price > 0 ) {
 			$stripe_service = new StripeService();
 			$options        = get_option( 'organizer_options' );
 			$currency       = isset( $options['organizer_currency'] ) ? $options['organizer_currency'] : 'USD';

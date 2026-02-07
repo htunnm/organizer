@@ -206,6 +206,8 @@ class Registration {
 			status varchar(50) NOT NULL DEFAULT 'pending',
 			transaction_id varchar(255) DEFAULT '',
 			amount int(11) DEFAULT 0,
+			discount_code varchar(50) DEFAULT '',
+			discount_amount int(11) DEFAULT 0,
 			checkin_token varchar(64) DEFAULT '',
 			checked_in_at datetime DEFAULT NULL,
 			expires_at datetime DEFAULT NULL,

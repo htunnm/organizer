@@ -455,6 +455,30 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'wp_send_json_success' ) ) {
+		function wp_send_json_success( $data = null ) {
+			echo json_encode(
+				array(
+					'success' => true,
+					'data'    => $data,
+				)
+			);
+			return true;
+		}
+	}
+
+	if ( ! function_exists( 'wp_send_json_error' ) ) {
+		function wp_send_json_error( $data = null ) {
+			echo json_encode(
+				array(
+					'success' => false,
+					'data'    => $data,
+				)
+			);
+			return true;
+		}
+	}
+
 	// Mock WP Classes
 	if ( ! class_exists( 'WP_Error' ) ) {
 		class WP_Error {

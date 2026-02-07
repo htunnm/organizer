@@ -15,6 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @var int $event_id Event ID.
  * @var int $session_id Session ID.
  */
+
+$price = (float) get_post_meta( $event_id, '_organizer_event_price', true );
 ?>
 <div class="organizer-registration-form">
 	<?php
@@ -37,6 +39,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php wp_nonce_field( 'organizer_register_nonce', 'organizer_nonce' ); ?>
 		<p><label><?php esc_html_e( 'Name', 'organizer' ); ?> <input type="text" name="organizer_name" required></label></p>
 		<p><label><?php esc_html_e( 'Email', 'organizer' ); ?> <input type="email" name="organizer_email" required></label></p>
+		<?php if ( $price > 0 ) : ?>
+			<p><?php esc_html_e( 'Price:', 'organizer' ); ?> <span id="organizer_event_price_display" data-price="<?php echo esc_attr( $price ); ?>"><?php echo esc_html( number_format( $price, 2 ) ); ?></span></p>
+		<?php endif; ?>
+
 		<?php
 		$custom_fields = get_post_meta( $event_id, '_organizer_custom_fields', true );
 		if ( ! empty( $custom_fields ) && is_array( $custom_fields ) ) {
@@ -55,6 +61,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 		}
 		?>
+		<?php if ( $price > 0 ) : ?>
+			<div class="organizer-discount-section">
+				<p>
+					<label><?php esc_html_e( 'Discount Code', 'organizer' ); ?> <input type="text" id="organizer_discount_code" name="discount_code"></label>
+					<button type="button" id="organizer_apply_discount" class="button"><?php esc_html_e( 'Apply', 'organizer' ); ?></button>
+				</p>
+				<p id="organizer_discount_message"></p>
+			</div>
+		<?php endif; ?>
 		<p><button type="submit"><?php esc_html_e( 'Register', 'organizer' ); ?></button></p>
 	</form>
 </div>
