@@ -75,6 +75,7 @@ class MetaBox {
 		if ( ! is_array( $custom_fields ) ) {
 			$custom_fields = array();
 		}
+		$price = get_post_meta( $post->ID, '_organizer_event_price', true );
 		?>
 		<p>
 			<label for="organizer_recurrence_type"><?php esc_html_e( 'Recurrence Type:', 'organizer' ); ?></label>
@@ -92,6 +93,10 @@ class MetaBox {
 		<p>
 			<label for="organizer_duration"><?php esc_html_e( 'Duration (minutes):', 'organizer' ); ?></label>
 			<input type="number" name="organizer_recurrence_rules[duration_minutes]" id="organizer_duration" value="<?php echo esc_attr( $duration ); ?>">
+		</p>
+		<p>
+			<label for="organizer_event_price"><?php esc_html_e( 'Price:', 'organizer' ); ?></label>
+			<input type="number" step="0.01" name="organizer_event_price" id="organizer_event_price" value="<?php echo esc_attr( $price ); ?>">
 		</p>
 		<div id="organizer_recurrence_options">
 			<p>
@@ -185,6 +190,11 @@ class MetaBox {
 			Session::delete_by_event( $post_id );
 			$generator = new SeriesGenerator();
 			$generator->generate_sessions( $post_id, $rules );
+		}
+
+		if ( isset( $_POST['organizer_event_price'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			update_post_meta( $post_id, '_organizer_event_price', sanitize_text_field( wp_unslash( $_POST['organizer_event_price'] ) ) );
 		}
 
 		if ( isset( $_POST['organizer_custom_fields'] ) ) {

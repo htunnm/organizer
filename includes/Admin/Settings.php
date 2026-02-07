@@ -56,6 +56,43 @@ class Settings {
 		);
 
 		add_settings_section(
+			'organizer_payment_section',
+			__( 'Payment Settings', 'organizer' ),
+			null,
+			'organizer-settings'
+		);
+
+		add_settings_field(
+			'organizer_stripe_publishable_key',
+			__( 'Stripe Publishable Key', 'organizer' ),
+			array( __CLASS__, 'render_text_field' ),
+			'organizer-settings',
+			'organizer_payment_section',
+			array( 'id' => 'organizer_stripe_publishable_key' )
+		);
+
+		add_settings_field(
+			'organizer_stripe_secret_key',
+			__( 'Stripe Secret Key', 'organizer' ),
+			array( __CLASS__, 'render_text_field' ),
+			'organizer-settings',
+			'organizer_payment_section',
+			array( 'id' => 'organizer_stripe_secret_key' )
+		);
+
+		add_settings_field(
+			'organizer_currency',
+			__( 'Currency', 'organizer' ),
+			array( __CLASS__, 'render_text_field' ),
+			'organizer-settings',
+			'organizer_payment_section',
+			array(
+				'id'      => 'organizer_currency',
+				'default' => 'USD',
+			)
+		);
+
+		add_settings_section(
 			'organizer_email_section',
 			__( 'Email Templates', 'organizer' ),
 			array( __CLASS__, 'render_email_section_description' ),
@@ -122,6 +159,19 @@ class Settings {
 		<input type="number" name="organizer_options[events_per_page]" value="<?php echo esc_attr( $value ); ?>" class="small-text">
 		<p class="description"><?php esc_html_e( 'Number of events to show per page in the admin list.', 'organizer' ); ?></p>
 		<?php
+	}
+
+	/**
+	 * Render a generic text field.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public static function render_text_field( $args ) {
+		$options = get_option( 'organizer_options' );
+		$id      = $args['id'];
+		$default = isset( $args['default'] ) ? $args['default'] : '';
+		$value   = isset( $options[ $id ] ) ? $options[ $id ] : $default;
+		echo '<input type="text" name="organizer_options[' . esc_attr( $id ) . ']" value="' . esc_attr( $value ) . '" class="regular-text">';
 	}
 
 	/**

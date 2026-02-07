@@ -15,6 +15,7 @@ use Organizer\Services\IcsGenerator;
 use Organizer\Model\Session;
 use Organizer\Services\Email\TemplateService;
 use Organizer\Model\RegistrationMeta;
+use Organizer\Services\Payment\StripeService;
 
 /**
  * Class FormHandler
@@ -27,6 +28,7 @@ class FormHandler {
 	public static function init() {
 		add_action( 'admin_post_organizer_register', array( __CLASS__, 'handle_registration' ) );
 		add_action( 'admin_post_nopriv_organizer_register', array( __CLASS__, 'handle_registration' ) );
+		add_action( 'admin_post_organizer_payment_return', array( __CLASS__, 'handle_payment_return' ) );
 		add_action( 'admin_post_organizer_cancel_registration', array( __CLASS__, 'handle_cancellation' ) );
 		add_action( 'admin_post_organizer_update_profile', array( __CLASS__, 'handle_profile_update' ) );
 	}
@@ -54,8 +56,13 @@ class FormHandler {
 			'session_id' => $session_id,
 			'name'       => $name,
 			'email'      => $email,
-			'status'     => 'pending',
+			'status'     => 'pending', // Default.
 		);
+
+		$price = (float) get_post_meta( $event_id, '_organizer_event_price', true );
+		if ( $price > 0 ) {
+			$data['status'] = 'pending_payment';
+		}
 
 		// Check capacity.
 		if ( Event::is_full( $event_id ) ) {
@@ -81,6 +88,28 @@ class FormHandler {
 				$clean_value = sanitize_text_field( $value );
 				RegistrationMeta::add( $id, $clean_key, $clean_value );
 			}
+		}
+
+		// Handle Payment.
+		if ( $price > 0 ) {
+			$stripe_service = new StripeService();
+			$options        = get_option( 'organizer_options' );
+			$currency       = isset( $options['organizer_currency'] ) ? $options['organizer_currency'] : 'USD';
+			$event_title    = get_the_title( $event_id );
+
+			$success_url = admin_url( 'admin-post.php?action=organizer_payment_return&reg_id=' . $id );
+			$cancel_url  = add_query_arg( 'organizer_registration', 'cancelled', wp_get_referer() );
+
+			$session = $stripe_service->create_checkout_session( $id, $event_title, $price, $currency, $success_url, $cancel_url );
+
+			if ( $session && isset( $session->url ) ) {
+				// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
+				wp_redirect( $session->url );
+				exit;
+			}
+			// Fallback if Stripe fails.
+			wp_safe_redirect( add_query_arg( 'organizer_registration', 'error', wp_get_referer() ) );
+			exit;
 		}
 
 		// Send confirmation email with ICS.
@@ -116,6 +145,63 @@ class FormHandler {
 		$email_service->send( $email, $subject, nl2br( $message ), array(), $attachments );
 
 		wp_safe_redirect( add_query_arg( 'organizer_registration', 'success', wp_get_referer() ) );
+		exit;
+	}
+
+	/**
+	 * Handle payment return from Stripe.
+	 */
+	public static function handle_payment_return() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$reg_id = isset( $_GET['reg_id'] ) ? absint( $_GET['reg_id'] ) : 0;
+
+		if ( empty( $reg_id ) ) {
+			wp_die( esc_html__( 'Invalid registration.', 'organizer' ) );
+		}
+
+		// Update status.
+		global $wpdb;
+		$table_name = Registration::get_table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->update( $table_name, array( 'status' => 'confirmed' ), array( 'id' => $reg_id ) );
+
+		// Fetch registration details for email.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$registration = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $reg_id ) );
+
+		if ( $registration ) {
+			$email_service    = new GmailAdapter();
+			$template_service = new TemplateService();
+			$template         = $template_service->get_template( 'registration_confirmation' );
+			$placeholders     = array(
+				'attendee_name' => esc_html( $registration->name ),
+				'event_title'   => get_the_title( $registration->event_id ),
+			);
+			$subject          = $template_service->render( $template['subject'], $placeholders );
+			$message          = $template_service->render( $template['message'], $placeholders );
+
+			$attachments = array();
+			if ( $registration->session_id ) {
+				$session_table = Session::get_table_name();
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$session = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $session_table WHERE id = %d", $registration->session_id ) );
+
+				if ( $session ) {
+					$ics_generator = new IcsGenerator();
+					$event_title   = get_the_title( $registration->event_id );
+					$ics_content   = $ics_generator->generate_session_ics( $session, $event_title );
+					$upload_dir    = wp_upload_dir();
+					$file_path     = $upload_dir['basedir'] . '/invite.ics';
+					// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+					file_put_contents( $file_path, $ics_content );
+					$attachments[] = $file_path;
+				}
+			}
+
+			$email_service->send( $registration->email, $subject, nl2br( $message ), array(), $attachments );
+		}
+
+		wp_safe_redirect( add_query_arg( 'organizer_registration', 'success', home_url() ) );
 		exit;
 	}
 

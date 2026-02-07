@@ -174,6 +174,8 @@ class Registration {
 			name varchar(255) NOT NULL,
 			email varchar(255) NOT NULL,
 			status varchar(50) NOT NULL DEFAULT 'pending',
+			transaction_id varchar(255) DEFAULT '',
+			amount int(11) DEFAULT 0,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			PRIMARY KEY  (id),
 			KEY event_id (event_id),
