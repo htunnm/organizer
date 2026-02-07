@@ -182,6 +182,8 @@ class MetaBox {
 		</details>
 
 		<?php
+		// Email Notifications Section.
+		?>
 		// Feedback Section.
 		$avg_rating = Feedback::get_average_rating( $post->ID );
 		$feedbacks  = Feedback::get_by_event( $post->ID );

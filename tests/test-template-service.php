@@ -1,6 +1,6 @@
 <?php
 /**
- * Class TemplateServiceTest
+ * Class Test_Template_Service
  *
  * @package Organizer
  */
@@ -10,7 +10,7 @@ use Organizer\Services\Email\TemplateService;
 /**
  * Test the TemplateService class.
  */
-class TemplateServiceTest extends \PHPUnit\Framework\TestCase {
+class Test_Template_Service extends \PHPUnit\Framework\TestCase {
 
 	/**
 	 * Reset mocks before each test.
