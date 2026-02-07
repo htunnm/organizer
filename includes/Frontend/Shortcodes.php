@@ -34,6 +34,7 @@ class Shortcodes {
 	public static function enqueue_assets() {
 		wp_register_style( 'organizer-calendar', ORGANIZER_URL . 'assets/css/calendar.css', array(), ORGANIZER_VERSION );
 		wp_register_style( 'organizer-dashboard', ORGANIZER_URL . 'assets/css/dashboard.css', array(), ORGANIZER_VERSION );
+		wp_register_style( 'organizer-registration', ORGANIZER_URL . 'assets/css/registration.css', array(), ORGANIZER_VERSION );
 		wp_register_script( 'organizer-frontend', ORGANIZER_URL . 'assets/js/frontend.js', array( 'jquery' ), ORGANIZER_VERSION, true );
 		wp_localize_script( 'organizer-frontend', 'organizer_ajax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 	}
@@ -119,6 +120,7 @@ class Shortcodes {
 		}
 
 		ob_start();
+		wp_enqueue_style( 'organizer-registration' );
 		wp_enqueue_script( 'organizer-frontend' );
 		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/registration-form.php';
 		if ( file_exists( $view_file ) ) {

@@ -69,4 +69,16 @@ class ShortcodesTest extends \PHPUnit\Framework\TestCase {
 
 		$this->assertStringContainsString( 'organizer-search-form', $output );
 	}
+
+	/**
+	 * Test render_registration_form outputs multi-step structure.
+	 */
+	public function test_render_registration_form_outputs_steps() {
+		$output = Shortcodes::render_registration_form( array( 'event_id' => 1 ) );
+
+		$this->assertStringContainsString( 'organizer-registration-form', $output );
+		$this->assertStringContainsString( 'organizer-step', $output );
+		$this->assertStringContainsString( 'organizer-progress-bar', $output );
+		$this->assertStringContainsString( 'data-step="1"', $output );
+	}
 }
