@@ -13,6 +13,7 @@ use Organizer\Model\Session;
 use Organizer\Model\Registration;
 use Organizer\Services\Logger;
 use Organizer\Services\Email\GmailAdapter;
+use Organizer\Services\Email\TemplateService;
 
 /**
  * Class SessionController
@@ -80,15 +81,19 @@ class SessionController extends WP_REST_Controller {
 		Logger::log( 'session_cancelled', "Session $id cancelled", $session->event_id, $id );
 
 		// Notify attendees.
-		$attendees     = Registration::get_attendees( $session->event_id, $id );
-		$email_service = new GmailAdapter();
-		$subject       = __( 'Session Cancelled', 'organizer' );
-		/* translators: %s: Session Start Time */
-		$message_tpl = __( 'Hi,<br><br>The session scheduled for %s has been cancelled.<br><br>Regards,<br>Organizer Team', 'organizer' );
-		$message     = sprintf( $message_tpl, $session->start_datetime );
+		$attendees        = Registration::get_attendees( $session->event_id, $id );
+		$email_service    = new GmailAdapter();
+		$template_service = new TemplateService();
+		$template         = $template_service->get_template( 'session_cancelled' );
+		$placeholders     = array(
+			'event_title' => get_the_title( $session->event_id ),
+			'start_date'  => $session->start_datetime,
+		);
+		$subject          = $template_service->render( $template['subject'], $placeholders );
+		$message          = $template_service->render( $template['message'], $placeholders );
 
 		foreach ( $attendees as $attendee ) {
-			$email_service->send( $attendee->email, $subject, $message );
+			$email_service->send( $attendee->email, $subject, nl2br( $message ) );
 		}
 
 		return rest_ensure_response(

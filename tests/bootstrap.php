@@ -204,8 +204,14 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		function add_settings_field() {}
 	}
 	if ( ! function_exists( 'get_option' ) ) {
-		function get_option() {
-			return 'Y-m-d'; // Default date format for tests.
+		function get_option( $option, $default = false ) {
+			if ( 'date_format' === $option ) {
+				return 'Y-m-d';
+			}
+			if ( 'time_format' === $option ) {
+				return 'H:i';
+			}
+			return $default;
 		}
 	}
 	if ( ! function_exists( 'wp_enqueue_scripts' ) ) {

@@ -16,6 +16,7 @@ use Organizer\Services\Email\GmailAdapter;
 use Organizer\Services\IcsGenerator;
 use Organizer\Model\Session;
 use Organizer\Services\RateLimiter;
+use Organizer\Services\Email\TemplateService;
 
 /**
  * Class RegistrationController
@@ -86,14 +87,16 @@ class RegistrationController extends WP_REST_Controller {
 			}
 
 			// Send waitlist email.
-			$email_service = new GmailAdapter();
-			$subject       = __( 'Added to Waitlist', 'organizer' );
-			$message       = sprintf(
-				/* translators: %s: Attendee Name */
-				__( 'Hi %s,<br><br>The event is full. You have been added to the waitlist.<br><br>Regards,<br>Organizer Team', 'organizer' ),
-				esc_html( $data['name'] )
+			$email_service    = new GmailAdapter();
+			$template_service = new TemplateService();
+			$template         = $template_service->get_template( 'waitlist_confirmation' );
+			$placeholders     = array(
+				'attendee_name' => esc_html( $data['name'] ),
+				'event_title'   => get_the_title( $data['event_id'] ),
 			);
-			$email_service->send( $data['email'], $subject, $message );
+			$subject          = $template_service->render( $template['subject'], $placeholders );
+			$message          = $template_service->render( $template['message'], $placeholders );
+			$email_service->send( $data['email'], $subject, nl2br( $message ) );
 
 			return rest_ensure_response(
 				array(
@@ -111,13 +114,15 @@ class RegistrationController extends WP_REST_Controller {
 		}
 
 		// Send confirmation email.
-		$email_service = new GmailAdapter();
-		$subject       = __( 'Registration Confirmation', 'organizer' );
-		$message       = sprintf(
-			/* translators: %s: Attendee Name */
-			__( 'Hi %s,<br><br>Thank you for registering for the event. Your registration is pending approval.<br><br>Regards,<br>Organizer Team', 'organizer' ),
-			esc_html( $data['name'] )
+		$email_service    = new GmailAdapter();
+		$template_service = new TemplateService();
+		$template         = $template_service->get_template( 'registration_confirmation' );
+		$placeholders     = array(
+			'attendee_name' => esc_html( $data['name'] ),
+			'event_title'   => get_the_title( $data['event_id'] ),
 		);
+		$subject          = $template_service->render( $template['subject'], $placeholders );
+		$message          = $template_service->render( $template['message'], $placeholders );
 
 		// Generate ICS.
 		$attachments = array();
@@ -139,7 +144,7 @@ class RegistrationController extends WP_REST_Controller {
 			}
 		}
 
-		$email_service->send( $data['email'], $subject, $message, array(), $attachments );
+		$email_service->send( $data['email'], $subject, nl2br( $message ), array(), $attachments );
 
 		return rest_ensure_response(
 			array(

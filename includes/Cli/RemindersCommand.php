@@ -11,6 +11,7 @@ use WP_CLI;
 use Organizer\Model\Session;
 use Organizer\Services\Email\GmailAdapter;
 use Organizer\Services\Email\ReminderService;
+use Organizer\Services\Email\TemplateService;
 
 /**
  * Class RemindersCommand
@@ -69,19 +70,16 @@ class RemindersCommand {
 				continue;
 			}
 
-			$subject = sprintf(
-				/* translators: %s: Event Title */
-				__( 'Reminder: %s is coming up!', 'organizer' ),
-				$event_title
+			$template_service = new TemplateService();
+			$template         = $template_service->get_template( 'event_reminder' );
+			$placeholders     = array(
+				'event_title' => $event_title,
+				'start_date'  => $session->start_datetime,
 			);
-			$message = sprintf(
-				/* translators: 1: Event Title, 2: Start Time */
-				__( 'Hi there,<br><br>This is a reminder that <strong>%1$s</strong> is starting on %2$s.<br><br>See you there!', 'organizer' ),
-				$event_title,
-				$session->start_datetime
-			);
+			$subject          = $template_service->render( $template['subject'], $placeholders );
+			$message          = $template_service->render( $template['message'], $placeholders );
 
-			$count = $reminder_service->send_reminders( $session->event_id, $session->id, $subject, $message );
+			$count = $reminder_service->send_reminders( $session->event_id, $session->id, $subject, nl2br( $message ) );
 			WP_CLI::success( "  Sent $count reminders." );
 		}
 	}

@@ -38,6 +38,7 @@ class Settings {
 	 */
 	public static function register_settings() {
 		register_setting( 'organizer_options', 'organizer_options' );
+		register_setting( 'organizer_options', 'organizer_email_templates' );
 
 		add_settings_section(
 			'organizer_general_section',
@@ -53,6 +54,62 @@ class Settings {
 			'organizer-settings',
 			'organizer_general_section'
 		);
+
+		add_settings_section(
+			'organizer_email_section',
+			__( 'Email Templates', 'organizer' ),
+			array( __CLASS__, 'render_email_section_description' ),
+			'organizer-settings'
+		);
+
+		$templates = array(
+			'registration_confirmation' => __( 'Registration Confirmation', 'organizer' ),
+			'waitlist_confirmation'     => __( 'Waitlist Confirmation', 'organizer' ),
+			'waitlist_promotion'        => __( 'Waitlist Promotion', 'organizer' ),
+			'event_reminder'            => __( 'Event Reminder', 'organizer' ),
+			'session_cancelled'         => __( 'Session Cancelled', 'organizer' ),
+		);
+
+		foreach ( $templates as $key => $label ) {
+			add_settings_field(
+				'organizer_email_' . $key,
+				$label,
+				function () use ( $key ) {
+					self::render_email_template_fields( $key );
+				},
+				'organizer-settings',
+				'organizer_email_section'
+			);
+		}
+	}
+
+	/**
+	 * Render email section description.
+	 */
+	public static function render_email_section_description() {
+		echo '<p>' . esc_html__( 'Customize the email templates sent to attendees.', 'organizer' ) . '</p>';
+		echo '<p><strong>' . esc_html__( 'Available Placeholders:', 'organizer' ) . '</strong> {attendee_name}, {event_title}, {start_date}</p>';
+	}
+
+	/**
+	 * Render email template fields.
+	 *
+	 * @param string $key Template key.
+	 */
+	public static function render_email_template_fields( $key ) {
+		$options = get_option( 'organizer_email_templates', array() );
+		$subject = isset( $options[ $key . '_subject' ] ) ? $options[ $key . '_subject' ] : '';
+		$message = isset( $options[ $key . '_message' ] ) ? $options[ $key . '_message' ] : '';
+		?>
+		<p>
+			<label for="organizer_email_<?php echo esc_attr( $key ); ?>_subject"><?php esc_html_e( 'Subject:', 'organizer' ); ?></label><br>
+			<input type="text" name="organizer_email_templates[<?php echo esc_attr( $key ); ?>_subject]" id="organizer_email_<?php echo esc_attr( $key ); ?>_subject" value="<?php echo esc_attr( $subject ); ?>" class="regular-text">
+		</p>
+		<p>
+			<label for="organizer_email_<?php echo esc_attr( $key ); ?>_message"><?php esc_html_e( 'Message:', 'organizer' ); ?></label><br>
+			<textarea name="organizer_email_templates[<?php echo esc_attr( $key ); ?>_message]" id="organizer_email_<?php echo esc_attr( $key ); ?>_message" rows="5" cols="50" class="large-text"><?php echo esc_textarea( $message ); ?></textarea>
+		</p>
+		<?php
 	}
 
 	/**

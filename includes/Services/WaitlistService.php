@@ -10,6 +10,7 @@ namespace Organizer\Services;
 use Organizer\Model\Registration;
 use Organizer\Model\Waitlist;
 use Organizer\Services\Email\EmailServiceInterface;
+use Organizer\Services\Email\TemplateService;
 
 /**
  * Class WaitlistService
@@ -62,14 +63,16 @@ class WaitlistService {
 
 		Waitlist::remove( $next_user->id );
 
-		$subject = __( 'You have been promoted from the waitlist!', 'organizer' );
-		$message = sprintf(
-			/* translators: %s: Attendee Name */
-			__( 'Hi %s,<br><br>Good news! A spot has opened up and you have been registered for the event.<br><br>Regards,<br>Organizer Team', 'organizer' ),
-			esc_html( $next_user->name )
+		$template_service = new TemplateService();
+		$template         = $template_service->get_template( 'waitlist_promotion' );
+		$placeholders     = array(
+			'attendee_name' => esc_html( $next_user->name ),
+			'event_title'   => get_the_title( $event_id ),
 		);
+		$subject          = $template_service->render( $template['subject'], $placeholders );
+		$message          = $template_service->render( $template['message'], $placeholders );
 
-		$this->email_service->send( $next_user->email, $subject, $message );
+		$this->email_service->send( $next_user->email, $subject, nl2br( $message ) );
 
 		return true;
 	}

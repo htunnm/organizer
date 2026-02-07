@@ -13,6 +13,7 @@ use Organizer\Model\Waitlist;
 use Organizer\Services\Email\GmailAdapter;
 use Organizer\Services\IcsGenerator;
 use Organizer\Model\Session;
+use Organizer\Services\Email\TemplateService;
 
 /**
  * Class FormHandler
@@ -70,13 +71,15 @@ class FormHandler {
 		}
 
 		// Send confirmation email with ICS.
-		$email_service = new GmailAdapter();
-		$subject       = __( 'Registration Confirmation', 'organizer' );
-		$message       = sprintf(
-			/* translators: %s: Attendee Name */
-			__( 'Hi %s,<br><br>Thank you for registering for the event.', 'organizer' ),
-			esc_html( $name )
+		$email_service    = new GmailAdapter();
+		$template_service = new TemplateService();
+		$template         = $template_service->get_template( 'registration_confirmation' );
+		$placeholders     = array(
+			'attendee_name' => esc_html( $name ),
+			'event_title'   => get_the_title( $event_id ),
 		);
+		$subject          = $template_service->render( $template['subject'], $placeholders );
+		$message          = $template_service->render( $template['message'], $placeholders );
 
 		$attachments = array();
 		if ( $session_id ) {
@@ -97,7 +100,7 @@ class FormHandler {
 			}
 		}
 
-		$email_service->send( $email, $subject, $message, array(), $attachments );
+		$email_service->send( $email, $subject, nl2br( $message ), array(), $attachments );
 
 		wp_safe_redirect( add_query_arg( 'organizer_registration', 'success', wp_get_referer() ) );
 		exit;
