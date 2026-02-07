@@ -1,0 +1,21 @@
+﻿<?xml version="1.0"?>
+<ruleset name="Organizer Plugin Coding Standards">
+    <description>Apply WordPress Coding Standards to the Organizer plugin.</description>
+    
+    <file>.</file>
+    <exclude-pattern>/vendor/</exclude-pattern>
+    <exclude-pattern>/tests/</exclude-pattern>
+
+    <arg value="sp"/> <!-- Show progress and sniff names -->
+    <arg name="basepath" value="."/>
+    <arg name="colors"/>
+    <arg name="extensions" value="php"/>
+
+    <rule ref="WordPress">
+        <exclude name="WordPress.NamingConventions.PrefixAllGlobals"/>
+        <exclude name="WordPress.Files.FileName"/>
+    </rule>
+
+    <config name="testVersion" value="8.0-"/>
+    <config name="text_domain" value="organizer"/>
+</ruleset>
