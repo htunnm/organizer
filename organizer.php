@@ -31,6 +31,7 @@ use Organizer\Frontend\FormHandler;
 use Organizer\Frontend\Shortcodes;
 use Organizer\Model\Event;
 use Organizer\Services\CronService;
+use Organizer\Services\PrivacyService;
 use Organizer\Model\Log;
 use Organizer\Model\Registration;
 use Organizer\Model\RegistrationMeta;
@@ -108,6 +109,7 @@ class Plugin {
 		}
 
 		add_action( 'organizer_daily_reminders', array( CronService::class, 'handle_daily_reminders' ) );
+		PrivacyService::init();
 		add_action(
 			'widgets_init',
 			function () {
