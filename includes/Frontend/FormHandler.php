@@ -18,6 +18,7 @@ use Organizer\Model\RegistrationMeta;
 use Organizer\Services\Payment\StripeService;
 use Organizer\Services\QrCodeService;
 use Organizer\Model\DiscountCode;
+use Organizer\Model\Feedback;
 
 /**
  * Class FormHandler
@@ -33,6 +34,7 @@ class FormHandler {
 		add_action( 'admin_post_organizer_payment_return', array( __CLASS__, 'handle_payment_return' ) );
 		add_action( 'admin_post_organizer_cancel_registration', array( __CLASS__, 'handle_cancellation' ) );
 		add_action( 'admin_post_organizer_update_profile', array( __CLASS__, 'handle_profile_update' ) );
+		add_action( 'admin_post_organizer_submit_feedback', array( __CLASS__, 'handle_feedback_submission' ) );
 	}
 
 	/**
@@ -398,6 +400,36 @@ class FormHandler {
 		}
 
 		wp_safe_redirect( add_query_arg( 'organizer_profile_update', 'success', wp_get_referer() ) );
+		exit;
+	}
+
+	/**
+	 * Handle feedback submission.
+	 */
+	public static function handle_feedback_submission() {
+		if ( ! isset( $_POST['organizer_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['organizer_nonce'] ) ), 'organizer_feedback_nonce' ) ) {
+			wp_die( esc_html__( 'Invalid nonce.', 'organizer' ) );
+		}
+
+		$event_id        = isset( $_POST['event_id'] ) ? absint( $_POST['event_id'] ) : 0;
+		$registration_id = isset( $_POST['registration_id'] ) ? absint( $_POST['registration_id'] ) : 0;
+		$rating          = isset( $_POST['rating'] ) ? absint( $_POST['rating'] ) : 0;
+		$comment         = isset( $_POST['comment'] ) ? sanitize_textarea_field( wp_unslash( $_POST['comment'] ) ) : '';
+
+		if ( empty( $event_id ) || empty( $rating ) ) {
+			wp_die( esc_html__( 'Missing required fields.', 'organizer' ) );
+		}
+
+		Feedback::submit(
+			array(
+				'event_id'        => $event_id,
+				'registration_id' => $registration_id,
+				'rating'          => $rating,
+				'comment'         => $comment,
+			)
+		);
+
+		wp_safe_redirect( add_query_arg( 'organizer_feedback', 'success', wp_get_referer() ) );
 		exit;
 	}
 }

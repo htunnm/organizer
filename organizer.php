@@ -36,6 +36,7 @@ use Organizer\Model\RSVP;
 use Organizer\Model\Session;
 use Organizer\Model\Waitlist;
 use Organizer\Model\DiscountCode;
+use Organizer\Model\Feedback;
 use Organizer\Rest\RegistrationController;
 use Organizer\Rest\RSVPController;
 use Organizer\Rest\SessionController;
@@ -119,6 +120,7 @@ class Plugin {
 		Log::create_table();
 		RegistrationMeta::create_table();
 		DiscountCode::create_table();
+		Feedback::create_table();
 		flush_rewrite_rules();
 
 		if ( ! wp_next_scheduled( 'organizer_daily_reminders' ) ) {

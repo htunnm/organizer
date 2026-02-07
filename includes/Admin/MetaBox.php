@@ -9,6 +9,7 @@ namespace Organizer\Admin;
 
 use Organizer\Services\SeriesGenerator;
 use Organizer\Model\Session;
+use Organizer\Model\Feedback;
 
 /**
  * Class MetaBox
@@ -180,6 +181,25 @@ class MetaBox {
 			</div>
 		</details>
 
+		<?php
+		// Feedback Section.
+		$avg_rating = Feedback::get_average_rating( $post->ID );
+		$feedbacks  = Feedback::get_by_event( $post->ID );
+		?>
+		<hr>
+		<h4><?php esc_html_e( 'Feedback', 'organizer' ); ?></h4>
+		<p><strong><?php esc_html_e( 'Average Rating:', 'organizer' ); ?></strong> <?php echo esc_html( number_format( $avg_rating, 1 ) ); ?> / 5</p>
+		<?php if ( ! empty( $feedbacks ) ) : ?>
+			<ul>
+				<?php foreach ( $feedbacks as $feedback ) : ?>
+					<li>
+						<strong><?php echo esc_html( $feedback['rating'] ); ?>/5</strong> - 
+						<?php echo esc_html( $feedback['comment'] ); ?>
+						<small>(<?php echo esc_html( $feedback['created_at'] ); ?>)</small>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		<?php endif; ?>
 		<?php
 	}
 

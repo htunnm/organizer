@@ -28,6 +28,7 @@ class Shortcodes {
 		add_shortcode( 'organizer_ticket', array( __CLASS__, 'render_ticket' ) );
 		add_shortcode( 'organizer_analytics_dashboard', array( __CLASS__, 'render_analytics_dashboard' ) );
 		add_shortcode( 'organizer_checkin_scanner', array( __CLASS__, 'render_checkin_scanner' ) );
+		add_shortcode( 'organizer_feedback_form', array( __CLASS__, 'render_feedback_form' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 	}
 
@@ -309,6 +310,51 @@ class Shortcodes {
 
 		ob_start();
 		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/scanner.php';
+		if ( file_exists( $view_file ) ) {
+			include $view_file;
+		}
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render the feedback form shortcode.
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string HTML output.
+	 */
+	public static function render_feedback_form( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'event_id'  => 0,
+				'anonymous' => 'no',
+			),
+			$atts,
+			'organizer_feedback_form'
+		);
+
+		$event_id = (int) $atts['event_id'];
+		if ( empty( $event_id ) ) {
+			return '<p>' . esc_html__( 'Event ID is required.', 'organizer' ) . '</p>';
+		}
+
+		$registration_id = 0;
+		if ( 'yes' !== $atts['anonymous'] ) {
+			if ( ! is_user_logged_in() ) {
+				return '<p>' . esc_html__( 'Please log in to leave feedback.', 'organizer' ) . '</p>';
+			}
+			// Check if user registered for this event.
+			$current_user  = wp_get_current_user();
+			$registrations = Registration::get_by_user_email( $current_user->user_email );
+			foreach ( $registrations as $reg ) {
+				if ( (int) $reg['event_id'] === $event_id && 'confirmed' === $reg['status'] ) {
+					$registration_id = $reg['id'];
+					break;
+				}
+			}
+		}
+
+		ob_start();
+		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/feedback-form.php';
 		if ( file_exists( $view_file ) ) {
 			include $view_file;
 		}
