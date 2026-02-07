@@ -37,4 +37,15 @@ class SessionSearchTest extends \PHPUnit\Framework\TestCase {
 		// Verify execution without error.
 		$this->assertTrue( true );
 	}
+
+	/**
+	 * Test get_all with tag filter.
+	 */
+	public function test_get_all_with_tag() {
+		global $wpdb;
+		$filters = array( 'tag' => 'featured' );
+		Session::get_all( 10, 0, 'start_datetime', 'ASC', '', $filters );
+
+		$this->assertTrue( true );
+	}
 }

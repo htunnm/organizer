@@ -41,5 +41,8 @@ class EventModelTest extends \PHPUnit\Framework\TestCase {
 
 		$this->assertArrayHasKey( 'organizer_category', WPMocks::$taxonomies );
 		$this->assertContains( 'organizer_event', WPMocks::$taxonomies['organizer_category']['object_type'] );
+
+		$this->assertArrayHasKey( 'organizer_tag', WPMocks::$taxonomies );
+		$this->assertContains( 'organizer_event', WPMocks::$taxonomies['organizer_tag']['object_type'] );
 	}
 }

@@ -61,6 +61,7 @@ class Shortcodes {
 			array(
 				'limit'       => 10,
 				'category'    => '',
+				'tag'         => '',
 				'show_search' => 'no',
 			),
 			$atts,
@@ -82,6 +83,10 @@ class Shortcodes {
 		if ( ! empty( $_GET['organizer_end_date'] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$filters['end_date'] = sanitize_text_field( wp_unslash( $_GET['organizer_end_date'] ) );
+		}
+
+		if ( ! empty( $atts['tag'] ) ) {
+			$filters['tag'] = sanitize_text_field( $atts['tag'] );
 		}
 
 		// Fetch upcoming sessions.

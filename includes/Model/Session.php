@@ -75,7 +75,7 @@ class Session {
 	 * @param string $orderby Column to sort by.
 	 * @param string $order   Sort order.
 	 * @param string $category_slug Category slug to filter by.
-	 * @param array  $filters       Additional filters (keyword, start_date, end_date).
+	 * @param array  $filters       Additional filters (keyword, start_date, end_date, tag).
 	 * @return array List of sessions.
 	 */
 	public static function get_all( $limit = 20, $offset = 0, $orderby = 'start_datetime', $order = 'ASC', $category_slug = '', $filters = array() ) {
@@ -98,6 +98,16 @@ class Session {
 				$join[]  = "INNER JOIN {$wpdb->prefix}term_relationships tr ON s.event_id = tr.object_id";
 				$join[]  = "INNER JOIN {$wpdb->prefix}term_taxonomy tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
 				$where[] = 'tt.term_id = %d';
+				$args[]  = $term->term_id;
+			}
+		}
+
+		if ( ! empty( $filters['tag'] ) ) {
+			$term = get_term_by( 'slug', $filters['tag'], 'organizer_tag' );
+			if ( $term ) {
+				$join[]  = "INNER JOIN {$wpdb->prefix}term_relationships trt ON s.event_id = trt.object_id";
+				$join[]  = "INNER JOIN {$wpdb->prefix}term_taxonomy ttt ON trt.term_taxonomy_id = ttt.term_taxonomy_id";
+				$where[] = 'ttt.term_id = %d';
 				$args[]  = $term->term_id;
 			}
 		}

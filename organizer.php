@@ -15,6 +15,7 @@ namespace Organizer;
 use Organizer\Admin\CheckinHandler;
 use Organizer\Admin\DashboardWidget;
 use Organizer\Blocks\CalendarBlock;
+use Organizer\Admin\TagCloudWidget;
 use Organizer\Admin\EventDuplicator;
 use Organizer\Admin\DiscountCodesPage;
 use Organizer\Admin\ExportHandler;
@@ -105,6 +106,12 @@ class Plugin {
 		}
 
 		add_action( 'organizer_daily_reminders', array( CronService::class, 'handle_daily_reminders' ) );
+		add_action(
+			'widgets_init',
+			function () {
+				register_widget( TagCloudWidget::class );
+			}
+		);
 	}
 
 	/**

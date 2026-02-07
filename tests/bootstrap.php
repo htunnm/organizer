@@ -28,6 +28,7 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		public static $taxonomies        = array();
 		public static $transients        = array();
 		public static $blocks            = array();
+		public static $widgets           = array();
 
 		public static function reset() {
 			self::$actions           = array();
@@ -43,6 +44,7 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 			self::$taxonomies        = array();
 			self::$transients        = array();
 			self::$blocks            = array();
+			self::$widgets           = array();
 		}
 	}
 
@@ -264,6 +266,18 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 				'object_type' => $object_type,
 				'args'        => $args,
 			);
+		}
+	}
+
+	if ( ! function_exists( 'register_widget' ) ) {
+		function register_widget( $widget_class ) {
+			WPMocks::$widgets[] = $widget_class;
+		}
+	}
+
+	if ( ! function_exists( 'wp_tag_cloud' ) ) {
+		function wp_tag_cloud( $args = array() ) {
+			echo '<div class="tag-cloud">Tag Cloud HTML</div>';
 		}
 	}
 
@@ -663,6 +677,20 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 			public function get_pagination_args() {
 				return $this->_pagination_args; }
 			public function display() {}
+		}
+	}
+
+	if ( ! class_exists( 'WP_Widget' ) ) {
+		class WP_Widget {
+			public function __construct( $id_base, $name, $widget_options = array(), $control_options = array() ) {}
+			public function widget( $args, $instance ) {}
+			public function form( $instance ) {}
+			public function update( $new_instance, $old_instance ) {
+				return $new_instance; }
+			public function get_field_id( $field_name ) {
+				return 'widget-' . $field_name; }
+			public function get_field_name( $field_name ) {
+				return 'widget-' . $field_name; }
 		}
 	}
 
