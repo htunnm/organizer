@@ -50,12 +50,15 @@ class DashboardWidget {
 		$analytics = new AnalyticsService();
 		$stats     = $analytics->get_registration_stats();
 		$daily     = $analytics->get_daily_registrations();
+		$wl_stats  = $analytics->get_waitlist_metrics();
+		$wl_growth = $analytics->get_waitlist_growth();
 
 		// Stats Grid.
 		echo '<div class="organizer-stats-grid">';
 		echo '<div class="organizer-stat-card"><span class="organizer-stat-value">' . esc_html( $stats['total'] ) . '</span><span class="organizer-stat-label">' . esc_html__( 'Total', 'organizer' ) . '</span></div>';
 		echo '<div class="organizer-stat-card"><span class="organizer-stat-value">' . esc_html( $stats['pending'] ) . '</span><span class="organizer-stat-label">' . esc_html__( 'Pending', 'organizer' ) . '</span></div>';
 		echo '<div class="organizer-stat-card"><span class="organizer-stat-value">' . esc_html( $stats['waitlist'] ) . '</span><span class="organizer-stat-label">' . esc_html__( 'Waitlist', 'organizer' ) . '</span></div>';
+		echo '<div class="organizer-stat-card"><span class="organizer-stat-value">' . esc_html( $wl_stats['promoted'] ) . '</span><span class="organizer-stat-label">' . esc_html__( 'Promoted', 'organizer' ) . '</span></div>';
 		echo '</div>';
 
 		// Simple CSS Bar Chart.
@@ -70,6 +73,21 @@ class DashboardWidget {
 				$h     = ( $count / $max ) * 100;
 				$title = gmdate( 'M j', strtotime( $date ) ) . ': ' . $count;
 				echo '<div class="organizer-chart-bar" style="height: ' . esc_attr( $h ) . '%;" title="' . esc_attr( $title ) . '"></div>';
+			}
+			echo '</div>';
+		}
+
+		// Waitlist Growth Chart.
+		if ( ! empty( $wl_growth ) ) {
+			echo '<h4>' . esc_html__( 'Waitlist Growth (Last 7 Days)', 'organizer' ) . '</h4>';
+			echo '<div class="organizer-chart-container">';
+			$max = max( $wl_growth ) > 0 ? max( $wl_growth ) : 1;
+			for ( $i = 6; $i >= 0; $i-- ) {
+				$date  = gmdate( 'Y-m-d', strtotime( "-$i days" ) );
+				$count = isset( $wl_growth[ $date ] ) ? $wl_growth[ $date ] : 0;
+				$h     = ( $count / $max ) * 100;
+				$title = gmdate( 'M j', strtotime( $date ) ) . ': ' . $count;
+				echo '<div class="organizer-chart-bar" style="height: ' . esc_attr( $h ) . '%; background-color: #d63638;" title="' . esc_attr( $title ) . '"></div>';
 			}
 			echo '</div>';
 		}

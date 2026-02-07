@@ -11,6 +11,7 @@ use Organizer\Model\Registration;
 use Organizer\Model\Waitlist;
 use Organizer\Services\Email\EmailServiceInterface;
 use Organizer\Services\Email\TemplateService;
+use Organizer\Services\Logger;
 
 /**
  * Class WaitlistService
@@ -66,6 +67,8 @@ class WaitlistService {
 		}
 
 		Waitlist::remove( $next_user->id );
+
+		Logger::log( 'waitlist_promotion', "Promoted user $next_user->id from waitlist", $event_id, $session_id );
 
 		$template_service = new TemplateService();
 		$template         = $template_service->get_template( 'waitlist_promotion' );

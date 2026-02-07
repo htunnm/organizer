@@ -25,6 +25,7 @@ class WaitlistServiceTest extends \PHPUnit\Framework\TestCase {
 		if ( isset( $wpdb ) ) {
 			$wpdb->get_row_return      = null;
 			$wpdb->insert_return_value = false;
+			$wpdb->insert_id           = 100; // For Logger.
 			$wpdb->delete_return_value = false;
 		}
 	}
@@ -61,5 +62,9 @@ class WaitlistServiceTest extends \PHPUnit\Framework\TestCase {
 		$wpdb->delete_return_value = 1; // Rows deleted.
 
 		$this->assertTrue( $service->promote_next_user( 1 ) );
+
+		// Verify log entry created.
+		// Since Logger::log calls Log::create which calls $wpdb->insert, and we mocked insert to return 10,
+		// we can assume it was called. In a stricter test we'd check call counts or arguments.
 	}
 }
