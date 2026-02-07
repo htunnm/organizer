@@ -23,6 +23,8 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		public static $sent_emails       = array();
 		public static $post_meta         = array();
 		public static $dashboard_widgets = array();
+		public static $shortcodes        = array();
+		public static $styles            = array();
 
 		public static function reset() {
 			self::$actions           = array();
@@ -33,6 +35,8 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 			self::$sent_emails       = array();
 			self::$post_meta         = array();
 			self::$dashboard_widgets = array();
+			self::$shortcodes        = array();
+			self::$styles            = array();
 		}
 	}
 
@@ -110,6 +114,34 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'add_shortcode' ) ) {
+		function add_shortcode( $tag, $callback ) {
+			WPMocks::$shortcodes[ $tag ] = $callback;
+		}
+	}
+
+	if ( ! function_exists( 'shortcode_atts' ) ) {
+		function shortcode_atts( $pairs, $atts, $shortcode = '' ) {
+			return array_merge( $pairs, (array) $atts );
+		}
+	}
+
+	if ( ! function_exists( 'wp_register_style' ) ) {
+		function wp_register_style( $handle, $src, $deps = array(), $ver = false, $media = 'all' ) {
+			WPMocks::$styles[ $handle ] = $src;
+		}
+	}
+
+	if ( ! function_exists( 'wp_enqueue_style' ) ) {
+		function wp_enqueue_style( $handle ) {}
+	}
+
+	if ( ! function_exists( 'date_i18n' ) ) {
+		function date_i18n( $format, $timestamp_with_offset = false, $gmt = false ) {
+			return date( $format, $timestamp_with_offset );
+		}
+	}
+
 	if ( ! function_exists( 'get_the_title' ) ) {
 		function get_the_title( $post = 0 ) {
 			return 'Event Title ' . $post;
@@ -163,7 +195,11 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 	}
 	if ( ! function_exists( 'get_option' ) ) {
 		function get_option() {
-			return array(); }
+			return 'Y-m-d'; // Default date format for tests.
+		}
+	}
+	if ( ! function_exists( 'wp_enqueue_scripts' ) ) {
+		function wp_enqueue_scripts() {}
 	}
 	if ( ! function_exists( 'current_user_can' ) ) {
 		function current_user_can() {

@@ -1,0 +1,14 @@
+.organizer-calendar {
+	margin: 20px 0;
+}
+
+.organizer-session-list {
+	list-style: none;
+	padding: 0;
+}
+
+.organizer-session-item {
+	border: 1px solid #ddd;
+	padding: 15px;
+	margin-bottom: 10px;
+}
