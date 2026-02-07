@@ -19,6 +19,7 @@ class Shortcodes {
 	 */
 	public static function init() {
 		add_shortcode( 'organizer_calendar', array( __CLASS__, 'render_calendar' ) );
+		add_shortcode( 'organizer_registration_form', array( __CLASS__, 'render_registration_form' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 	}
 
@@ -57,6 +58,39 @@ class Shortcodes {
 			include $view_file;
 		} else {
 			echo '<p>' . esc_html__( 'Calendar view not found.', 'organizer' ) . '</p>';
+		}
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render the registration form shortcode.
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string HTML output.
+	 */
+	public static function render_registration_form( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'event_id'   => 0,
+				'session_id' => 0,
+			),
+			$atts,
+			'organizer_registration_form'
+		);
+
+		$event_id   = (int) $atts['event_id'];
+		$session_id = (int) $atts['session_id'];
+
+		if ( empty( $event_id ) ) {
+			return '<p>' . esc_html__( 'Event ID is required.', 'organizer' ) . '</p>';
+		}
+
+		ob_start();
+		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/registration-form.php';
+		if ( file_exists( $view_file ) ) {
+			include $view_file;
+		} else {
+			echo '<p>' . esc_html__( 'Registration form view not found.', 'organizer' ) . '</p>';
 		}
 		return ob_get_clean();
 	}

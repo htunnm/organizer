@@ -316,6 +316,57 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'admin_url' ) ) {
+		function admin_url( $path = '', $scheme = 'admin' ) {
+			return 'http://example.com/wp-admin/' . $path;
+		}
+	}
+
+	if ( ! function_exists( 'wp_nonce_field' ) ) {
+		function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $echo = true ) {
+			if ( $echo ) {
+				echo '<input type="hidden" name="' . esc_attr( $name ) . '" value="mock_nonce">';
+			}
+			return 'mock_nonce';
+		}
+	}
+
+	if ( ! function_exists( 'wp_verify_nonce' ) ) {
+		function wp_verify_nonce( $nonce, $action = -1 ) {
+			return true;
+		}
+	}
+
+	if ( ! function_exists( 'wp_die' ) ) {
+		function wp_die( $message = '', $title = '', $args = array() ) {
+			throw new Exception( 'wp_die: ' . $message );
+		}
+	}
+
+	if ( ! function_exists( 'wp_redirect' ) ) {
+		function wp_redirect( $location, $status = 302 ) {}
+	}
+
+	if ( ! function_exists( 'wp_safe_redirect' ) ) {
+		function wp_safe_redirect( $location, $status = 302 ) {}
+	}
+
+	if ( ! function_exists( 'wp_safe_redirect' ) ) {
+		function wp_safe_redirect( $location, $status = 302 ) {}
+	}
+
+	if ( ! function_exists( 'add_query_arg' ) ) {
+		function add_query_arg( $key, $value, $url = '' ) {
+			return $url . '?' . $key . '=' . $value;
+		}
+	}
+
+	if ( ! function_exists( 'wp_get_referer' ) ) {
+		function wp_get_referer() {
+			return 'http://example.com/referer';
+		}
+	}
+
 	// Mock WP Classes
 	if ( ! class_exists( 'WP_Error' ) ) {
 		class WP_Error {

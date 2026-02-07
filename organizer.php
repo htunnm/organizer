@@ -68,6 +68,7 @@ class Plugin {
 		DashboardWidget::init();
 		MetaBox::init();
 		Shortcodes::init();
+		FormHandler::init();
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'organizer', RemindersCommand::class );
