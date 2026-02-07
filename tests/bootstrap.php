@@ -479,6 +479,20 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'wp_next_scheduled' ) ) {
+		function wp_next_scheduled( $hook, $args = array() ) {
+			return false;
+		}
+	}
+
+	if ( ! function_exists( 'wp_schedule_event' ) ) {
+		function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array() ) {}
+	}
+
+	if ( ! function_exists( 'wp_clear_scheduled_hook' ) ) {
+		function wp_clear_scheduled_hook( $hook, $args = array() ) {}
+	}
+
 	// Mock WP Classes
 	if ( ! class_exists( 'WP_Error' ) ) {
 		class WP_Error {

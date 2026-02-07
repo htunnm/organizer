@@ -26,6 +26,7 @@ use Organizer\Frontend\AjaxHandler;
 use Organizer\Frontend\FormHandler;
 use Organizer\Frontend\Shortcodes;
 use Organizer\Model\Event;
+use Organizer\Services\CronService;
 use Organizer\Model\Log;
 use Organizer\Model\Registration;
 use Organizer\Model\RegistrationMeta;
@@ -93,6 +94,8 @@ class Plugin {
 			\WP_CLI::add_command( 'organizer', RemindersCommand::class );
 			\WP_CLI::add_command( 'organizer process-expirations', array( ExpirationCommand::class, 'process_expirations' ) );
 		}
+
+		add_action( 'organizer_daily_reminders', array( CronService::class, 'handle_daily_reminders' ) );
 	}
 
 	/**
@@ -109,6 +112,10 @@ class Plugin {
 		RegistrationMeta::create_table();
 		DiscountCode::create_table();
 		flush_rewrite_rules();
+
+		if ( ! wp_next_scheduled( 'organizer_daily_reminders' ) ) {
+			wp_schedule_event( time(), 'hourly', 'organizer_daily_reminders' );
+		}
 	}
 
 	/**
@@ -116,6 +123,7 @@ class Plugin {
 	 */
 	public static function deactivate() {
 		// Cleanup tasks.
+		wp_clear_scheduled_hook( 'organizer_daily_reminders' );
 	}
 }
 

@@ -67,6 +67,18 @@ class Settings {
 			)
 		);
 
+		add_settings_field(
+			'organizer_reminder_hours',
+			__( 'Reminder Timing (Hours Before)', 'organizer' ),
+			array( __CLASS__, 'render_number_field' ),
+			'organizer-settings',
+			'organizer_general_section',
+			array(
+				'id'      => 'organizer_reminder_hours',
+				'default' => 24,
+			)
+		);
+
 		add_settings_section(
 			'organizer_payment_section',
 			__( 'Payment Settings', 'organizer' ),
