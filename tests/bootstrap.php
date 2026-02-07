@@ -27,6 +27,7 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		public static $styles            = array();
 		public static $taxonomies        = array();
 		public static $transients        = array();
+		public static $blocks            = array();
 
 		public static function reset() {
 			self::$actions           = array();
@@ -41,6 +42,7 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 			self::$styles            = array();
 			self::$taxonomies        = array();
 			self::$transients        = array();
+			self::$blocks            = array();
 		}
 	}
 
@@ -204,6 +206,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'esc_attr__' ) ) {
+		function esc_attr__( $text, $domain = 'default' ) {
+			return $text;
+		}
+	}
+
 	if ( ! function_exists( 'register_setting' ) ) {
 		function register_setting() {}
 	}
@@ -241,6 +249,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 	if ( ! function_exists( 'register_post_type' ) ) {
 		function register_post_type( $post_type, $args = array() ) {
 			WPMocks::$post_types[ $post_type ] = $args;
+		}
+	}
+
+	if ( ! function_exists( 'register_block_type' ) ) {
+		function register_block_type( $name, $args = array() ) {
+			WPMocks::$blocks[ $name ] = $args;
 		}
 	}
 
@@ -549,6 +563,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 	if ( ! function_exists( 'wp_get_attachment_image' ) ) {
 		function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = false, $attr = '' ) {
 			return '<img src="mock_image.jpg">';
+		}
+	}
+
+	if ( ! function_exists( 'current_time' ) ) {
+		function current_time( $type, $gmt = 0 ) {
+			return date( 'Y-m-d H:i:s' );
 		}
 	}
 

@@ -37,6 +37,7 @@ class CronServiceTest extends \PHPUnit\Framework\TestCase {
 				'id'             => 1,
 				'event_id'       => 10,
 				'start_datetime' => '2023-10-01 10:00:00',
+				'email'          => 'test@example.com',
 			),
 		);
 

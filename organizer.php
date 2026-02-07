@@ -14,6 +14,7 @@ namespace Organizer;
 
 use Organizer\Admin\CheckinHandler;
 use Organizer\Admin\DashboardWidget;
+use Organizer\Blocks\CalendarBlock;
 use Organizer\Admin\EventDuplicator;
 use Organizer\Admin\DiscountCodesPage;
 use Organizer\Admin\ExportHandler;
@@ -51,6 +52,10 @@ define( 'ORGANIZER_URL', plugin_dir_url( __FILE__ ) );
 
 if ( file_exists( ORGANIZER_PATH . 'vendor/autoload.php' ) ) {
 	require ORGANIZER_PATH . 'vendor/autoload.php';
+}
+
+if ( file_exists( ORGANIZER_PATH . 'includes/Blocks/CalendarBlock.php' ) ) {
+	require_once ORGANIZER_PATH . 'includes/Blocks/CalendarBlock.php';
 }
 
 /**
@@ -91,6 +96,7 @@ class Plugin {
 		DiscountCodesPage::init();
 		AjaxHandler::init();
 		EventDuplicator::init();
+		CalendarBlock::init();
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'organizer', RemindersCommand::class );

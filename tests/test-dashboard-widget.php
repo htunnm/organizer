@@ -28,9 +28,10 @@ class DashboardWidgetTest extends \PHPUnit\Framework\TestCase {
 	public function test_init_registers_action() {
 		DashboardWidget::init();
 
-		$this->assertCount( 1, WPMocks::$actions );
+		$this->assertCount( 2, WPMocks::$actions );
 		$this->assertEquals( 'wp_dashboard_setup', WPMocks::$actions[0]['tag'] );
 		$this->assertEquals( array( DashboardWidget::class, 'add_widget' ), WPMocks::$actions[0]['callback'] );
+		$this->assertEquals( 'admin_enqueue_scripts', WPMocks::$actions[1]['tag'] );
 	}
 
 	/**
