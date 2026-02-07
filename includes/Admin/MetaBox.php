@@ -21,6 +21,7 @@ class MetaBox {
 	public static function init() {
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_meta_boxes' ) );
 		add_action( 'save_post', array( __CLASS__, 'save_post' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
 	}
 
 	/**
@@ -35,6 +36,17 @@ class MetaBox {
 			'normal',
 			'high'
 		);
+	}
+
+	/**
+	 * Enqueue scripts.
+	 *
+	 * @param string $hook Admin page hook.
+	 */
+	public static function enqueue_scripts( $hook ) {
+		if ( 'post.php' === $hook || 'post-new.php' === $hook ) {
+			wp_enqueue_script( 'organizer-admin', ORGANIZER_URL . 'assets/js/admin.js', array( 'jquery' ), ORGANIZER_VERSION, true );
+		}
 	}
 
 	/**
@@ -58,6 +70,11 @@ class MetaBox {
 		$end_type   = isset( $rules['end_type'] ) ? $rules['end_type'] : 'count';
 		$end_count  = isset( $rules['end_count'] ) ? $rules['end_count'] : 5;
 		$end_date   = isset( $rules['end_date'] ) ? $rules['end_date'] : '';
+
+		$custom_fields = get_post_meta( $post->ID, '_organizer_custom_fields', true );
+		if ( ! is_array( $custom_fields ) ) {
+			$custom_fields = array();
+		}
 		?>
 		<p>
 			<label for="organizer_recurrence_type"><?php esc_html_e( 'Recurrence Type:', 'organizer' ); ?></label>
@@ -98,6 +115,46 @@ class MetaBox {
 			</p>
 		</div>
 		<?php
+		// Custom Fields Section.
+		?>
+		<hr>
+		<h4><?php esc_html_e( 'Custom Fields', 'organizer' ); ?></h4>
+		<div id="organizer-custom-fields-container">
+			<?php
+			if ( ! empty( $custom_fields ) ) {
+				foreach ( $custom_fields as $index => $field ) {
+					self::render_custom_field_row( $index, $field );
+				}
+			}
+			?>
+		</div>
+		<p>
+			<button type="button" class="button" id="organizer-add-custom-field"><?php esc_html_e( 'Add Field', 'organizer' ); ?></button>
+		</p>
+		<script type="text/template" id="organizer-custom-field-template">
+			<?php self::render_custom_field_row( 'INDEX', array() ); ?>
+		</script>
+		<?php
+	}
+
+	/**
+	 * Render a custom field row.
+	 *
+	 * @param int|string $index Index.
+	 * @param array      $field Field data.
+	 */
+	private static function render_custom_field_row( $index, $field ) {
+		$label    = isset( $field['label'] ) ? $field['label'] : '';
+		$type     = isset( $field['type'] ) ? $field['type'] : 'text';
+		$required = isset( $field['required'] ) ? $field['required'] : 'no';
+		?>
+		<div class="organizer-custom-field-row" style="margin-bottom: 10px; border: 1px solid #ddd; padding: 10px;">
+			<label><?php esc_html_e( 'Label:', 'organizer' ); ?> <input type="text" name="organizer_custom_fields[<?php echo esc_attr( $index ); ?>][label]" value="<?php echo esc_attr( $label ); ?>"></label>
+			<label><?php esc_html_e( 'Type:', 'organizer' ); ?> <select name="organizer_custom_fields[<?php echo esc_attr( $index ); ?>][type]"><option value="text" <?php selected( $type, 'text' ); ?>>Text</option><option value="checkbox" <?php selected( $type, 'checkbox' ); ?>>Checkbox</option></select></label>
+			<label><?php esc_html_e( 'Required:', 'organizer' ); ?> <select name="organizer_custom_fields[<?php echo esc_attr( $index ); ?>][required]"><option value="no" <?php selected( $required, 'no' ); ?>>No</option><option value="yes" <?php selected( $required, 'yes' ); ?>>Yes</option></select></label>
+			<button type="button" class="button organizer-remove-custom-field"><?php esc_html_e( 'Remove', 'organizer' ); ?></button>
+		</div>
+		<?php
 	}
 
 	/**
@@ -128,6 +185,21 @@ class MetaBox {
 			Session::delete_by_event( $post_id );
 			$generator = new SeriesGenerator();
 			$generator->generate_sessions( $post_id, $rules );
+		}
+
+		if ( isset( $_POST['organizer_custom_fields'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$raw_custom_fields = wp_unslash( $_POST['organizer_custom_fields'] );
+
+			$custom_fields = array_map(
+				function ( $field ) {
+					return array_map( 'sanitize_text_field', $field );
+				},
+				$raw_custom_fields
+			);
+			update_post_meta( $post_id, '_organizer_custom_fields', array_values( $custom_fields ) );
+		} else {
+			delete_post_meta( $post_id, '_organizer_custom_fields' );
 		}
 	}
 }

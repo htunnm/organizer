@@ -140,6 +140,10 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		function wp_enqueue_style( $handle ) {}
 	}
 
+	if ( ! function_exists( 'wp_enqueue_script' ) ) {
+		function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $in_footer = false ) {}
+	}
+
 	if ( ! function_exists( 'date_i18n' ) ) {
 		function date_i18n( $format, $timestamp_with_offset = false, $gmt = false ) {
 			return date( $format, $timestamp_with_offset );

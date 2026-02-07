@@ -8,6 +8,7 @@
 namespace Organizer\Admin;
 
 use Organizer\Model\Registration;
+use Organizer\Model\RegistrationMeta;
 
 /**
  * Class ExportHandler
@@ -44,9 +45,19 @@ class ExportHandler {
 		$output = fopen( 'php://output', 'w' );
 
 		// Headers.
-		fputcsv( $output, array( 'ID', 'Event ID', 'Session ID', 'Name', 'Email', 'Status', 'RSVP', 'Date' ) );
+		fputcsv( $output, array( 'ID', 'Event ID', 'Session ID', 'Name', 'Email', 'Status', 'RSVP', 'Date', 'Custom Fields' ) );
 
 		foreach ( $registrations as $row ) {
+			$meta_data   = RegistrationMeta::get_by_registration_id( $row['id'] );
+			$meta_string = '';
+			if ( ! empty( $meta_data ) ) {
+				$parts = array();
+				foreach ( $meta_data as $meta ) {
+					$parts[] = $meta->meta_key . ': ' . $meta->meta_value;
+				}
+				$meta_string = implode( '; ', $parts );
+			}
+
 			fputcsv(
 				$output,
 				array(
@@ -58,6 +69,7 @@ class ExportHandler {
 					$row['status'],
 					isset( $row['rsvp_status'] ) ? $row['rsvp_status'] : '',
 					$row['created_at'],
+					$meta_string,
 				)
 			);
 		}

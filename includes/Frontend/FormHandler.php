@@ -14,6 +14,7 @@ use Organizer\Services\Email\GmailAdapter;
 use Organizer\Services\IcsGenerator;
 use Organizer\Model\Session;
 use Organizer\Services\Email\TemplateService;
+use Organizer\Model\RegistrationMeta;
 
 /**
  * Class FormHandler
@@ -69,6 +70,17 @@ class FormHandler {
 		if ( ! $id ) {
 			wp_safe_redirect( add_query_arg( 'organizer_registration', 'error', wp_get_referer() ) );
 			exit;
+		}
+
+		// Save custom meta.
+		if ( isset( $_POST['organizer_meta'] ) && is_array( $_POST['organizer_meta'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$organizer_meta = wp_unslash( $_POST['organizer_meta'] );
+			foreach ( $organizer_meta as $key => $value ) {
+				$clean_key   = sanitize_text_field( $key );
+				$clean_value = sanitize_text_field( $value );
+				RegistrationMeta::add( $id, $clean_key, $clean_value );
+			}
 		}
 
 		// Send confirmation email with ICS.

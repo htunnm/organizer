@@ -37,6 +37,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php wp_nonce_field( 'organizer_register_nonce', 'organizer_nonce' ); ?>
 		<p><label><?php esc_html_e( 'Name', 'organizer' ); ?> <input type="text" name="organizer_name" required></label></p>
 		<p><label><?php esc_html_e( 'Email', 'organizer' ); ?> <input type="email" name="organizer_email" required></label></p>
+		<?php
+		$custom_fields = get_post_meta( $event_id, '_organizer_custom_fields', true );
+		if ( ! empty( $custom_fields ) && is_array( $custom_fields ) ) {
+			foreach ( $custom_fields as $field ) {
+				$label      = isset( $field['label'] ) ? $field['label'] : '';
+				$field_type = isset( $field['type'] ) ? $field['type'] : 'text';
+				$required   = isset( $field['required'] ) && 'yes' === $field['required'];
+				$req_attr   = $required ? 'required' : '';
+				echo '<p><label>' . esc_html( $label );
+				if ( 'text' === $field_type ) {
+					echo ' <input type="text" name="organizer_meta[' . esc_attr( $label ) . ']" ' . esc_attr( $req_attr ) . '>';
+				} elseif ( 'checkbox' === $field_type ) {
+					echo ' <input type="checkbox" name="organizer_meta[' . esc_attr( $label ) . ']" value="yes" ' . esc_attr( $req_attr ) . '>';
+				}
+				echo '</label></p>';
+			}
+		}
+		?>
 		<p><button type="submit"><?php esc_html_e( 'Register', 'organizer' ); ?></button></p>
 	</form>
 </div>
