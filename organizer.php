@@ -21,6 +21,7 @@ use Organizer\Admin\EventDuplicator;
 use Organizer\Admin\ImportPage;
 use Organizer\Admin\DiscountCodesPage;
 use Organizer\Admin\WaitlistPage;
+use Organizer\Admin\RevenuePage;
 use Organizer\Admin\ExportHandler;
 use Organizer\Admin\MetaBox;
 use Organizer\Admin\RegistrationsPage;
@@ -104,6 +105,7 @@ class Plugin {
 		EventDuplicator::init();
 		ImportPage::init();
 		WaitlistPage::init();
+		RevenuePage::init();
 		CalendarBlock::init();
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {

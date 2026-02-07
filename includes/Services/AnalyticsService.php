@@ -115,4 +115,49 @@ class AnalyticsService {
 		}
 		return $data;
 	}
+
+	/**
+	 * Get revenue statistics.
+	 *
+	 * @return array Revenue stats.
+	 */
+	public function get_revenue_stats() {
+		global $wpdb;
+		$reg_table = Registration::get_table_name();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$total_revenue = (float) $wpdb->get_var( "SELECT SUM(amount) FROM $reg_table WHERE status = 'confirmed'" );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$total_attendees = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $reg_table WHERE status = 'confirmed'" );
+
+		$avg_revenue = $total_attendees > 0 ? $total_revenue / $total_attendees : 0;
+
+		return array(
+			'total_revenue' => $total_revenue,
+			'avg_revenue'   => $avg_revenue,
+		);
+	}
+
+	/**
+	 * Get revenue by event.
+	 *
+	 * @return array List of events with revenue.
+	 */
+	public function get_revenue_by_event() {
+		global $wpdb;
+		$reg_table   = Registration::get_table_name();
+		$posts_table = $wpdb->prefix . 'posts';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT r.event_id, p.post_title as event_title, COUNT(r.id) as count, SUM(r.amount) as revenue FROM %i r INNER JOIN %i p ON r.event_id = p.ID WHERE r.status = %s GROUP BY r.event_id ORDER BY revenue DESC',
+				$reg_table,
+				$posts_table,
+				'confirmed'
+			),
+			ARRAY_A
+		);
+	}
 }
