@@ -16,6 +16,7 @@ use Organizer\Model\Session;
 use Organizer\Services\Email\TemplateService;
 use Organizer\Model\RegistrationMeta;
 use Organizer\Services\Payment\StripeService;
+use Organizer\Services\QrCodeService;
 
 /**
  * Class FormHandler
@@ -112,11 +113,26 @@ class FormHandler {
 			exit;
 		}
 
+		// Fetch created registration to get token.
+		global $wpdb;
+		$table_name = Registration::get_table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$registration = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $id ) );
+		$token        = $registration ? $registration->checkin_token : '';
+
+		// Generate QR Code for attachment.
+		$qr_service  = new QrCodeService();
+		$checkin_url = admin_url( 'admin-post.php?action=organizer_checkin&token=' . $token );
+		$upload_dir  = wp_upload_dir();
+		$qr_path     = $upload_dir['basedir'] . '/qr-' . $token . '.png';
+		$qr_service->generate_file( $checkin_url, $qr_path );
+
 		// Send confirmation email with ICS.
 		$email_service    = new GmailAdapter();
 		$template_service = new TemplateService();
 		$template         = $template_service->get_template( 'registration_confirmation' );
 		$placeholders     = array(
+			'ticket_link'   => home_url( '?organizer_ticket=1&token=' . $token ),
 			'attendee_name' => esc_html( $name ),
 			'event_title'   => get_the_title( $event_id ),
 		);
@@ -140,6 +156,10 @@ class FormHandler {
 				file_put_contents( $file_path, $ics_content );
 				$attachments[] = $file_path;
 			}
+		}
+
+		if ( file_exists( $qr_path ) ) {
+			$attachments[] = $qr_path;
 		}
 
 		$email_service->send( $email, $subject, nl2br( $message ), array(), $attachments );

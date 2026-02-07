@@ -63,7 +63,7 @@ class TemplateService {
 		$defaults = array(
 			'registration_confirmation' => array(
 				'subject' => __( 'Registration Confirmation', 'organizer' ),
-				'message' => __( "Hi {attendee_name},\n\nThank you for registering for {event_title}. Your registration is pending approval.\n\nRegards,\nOrganizer Team", 'organizer' ),
+				'message' => __( "Hi {attendee_name},\n\nThank you for registering for {event_title}. Your registration is pending approval.\n\nView your ticket here: {ticket_link}\n\nRegards,\nOrganizer Team", 'organizer' ),
 			),
 			'waitlist_confirmation'     => array(
 				'subject' => __( 'Added to Waitlist', 'organizer' ),

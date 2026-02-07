@@ -17,6 +17,7 @@ use Organizer\Services\IcsGenerator;
 use Organizer\Model\Session;
 use Organizer\Services\RateLimiter;
 use Organizer\Services\Email\TemplateService;
+use Organizer\Services\QrCodeService;
 
 /**
  * Class RegistrationController
@@ -113,11 +114,26 @@ class RegistrationController extends WP_REST_Controller {
 			return new WP_Error( 'db_error', __( 'Could not create registration', 'organizer' ), array( 'status' => 500 ) );
 		}
 
+		// Fetch created registration to get token.
+		global $wpdb;
+		$table_name = Registration::get_table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$registration = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $id ) );
+		$token        = $registration ? $registration->checkin_token : '';
+
+		// Generate QR Code for attachment.
+		$qr_service  = new QrCodeService();
+		$checkin_url = admin_url( 'admin-post.php?action=organizer_checkin&token=' . $token );
+		$upload_dir  = wp_upload_dir();
+		$qr_path     = $upload_dir['basedir'] . '/qr-' . $token . '.png';
+		$qr_service->generate_file( $checkin_url, $qr_path );
+
 		// Send confirmation email.
 		$email_service    = new GmailAdapter();
 		$template_service = new TemplateService();
 		$template         = $template_service->get_template( 'registration_confirmation' );
 		$placeholders     = array(
+			'ticket_link'   => home_url( '?organizer_ticket=1&token=' . $token ), // Assuming a page exists or using query var.
 			'attendee_name' => esc_html( $data['name'] ),
 			'event_title'   => get_the_title( $data['event_id'] ),
 		);
@@ -142,6 +158,10 @@ class RegistrationController extends WP_REST_Controller {
 				file_put_contents( $file_path, $ics_content );
 				$attachments[] = $file_path;
 			}
+		}
+
+		if ( file_exists( $qr_path ) ) {
+			$attachments[] = $qr_path;
 		}
 
 		$email_service->send( $data['email'], $subject, nl2br( $message ), array(), $attachments );

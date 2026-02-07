@@ -37,6 +37,10 @@ class Registration {
 			$data['status'] = 'pending';
 		}
 
+		if ( ! isset( $data['checkin_token'] ) ) {
+			$data['checkin_token'] = wp_generate_password( 32, false );
+		}
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$result = $wpdb->insert( $table_name, $data );
 
@@ -128,6 +132,32 @@ class Registration {
 	}
 
 	/**
+	 * Get registration by checkin token.
+	 *
+	 * @param string $token Checkin token.
+	 * @return object|null Registration object or null.
+	 */
+	public static function get_by_token( $token ) {
+		global $wpdb;
+		$table_name = self::get_table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE checkin_token = %s", $token ) );
+	}
+
+	/**
+	 * Check in a registration.
+	 *
+	 * @param int $id Registration ID.
+	 * @return int|false Number of rows updated or false on error.
+	 */
+	public static function checkin( $id ) {
+		global $wpdb;
+		$table_name = self::get_table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return $wpdb->update( $table_name, array( 'checked_in_at' => current_time( 'mysql' ) ), array( 'id' => $id ) );
+	}
+
+	/**
 	 * Get registrations for export.
 	 *
 	 * @return array List of registrations with RSVP status.
@@ -176,10 +206,13 @@ class Registration {
 			status varchar(50) NOT NULL DEFAULT 'pending',
 			transaction_id varchar(255) DEFAULT '',
 			amount int(11) DEFAULT 0,
+			checkin_token varchar(64) DEFAULT '',
+			checked_in_at datetime DEFAULT NULL,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			PRIMARY KEY  (id),
 			KEY event_id (event_id),
-			KEY session_id (session_id)
+			KEY session_id (session_id),
+			KEY checkin_token (checkin_token)
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';

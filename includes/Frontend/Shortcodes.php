@@ -9,6 +9,7 @@ namespace Organizer\Frontend;
 
 use Organizer\Model\Session;
 use Organizer\Model\Registration;
+use Organizer\Services\QrCodeService;
 
 /**
  * Class Shortcodes
@@ -23,6 +24,7 @@ class Shortcodes {
 		add_shortcode( 'organizer_registration_form', array( __CLASS__, 'render_registration_form' ) );
 		add_shortcode( 'organizer_user_dashboard', array( __CLASS__, 'render_user_dashboard' ) );
 		add_shortcode( 'organizer_user_profile', array( __CLASS__, 'render_user_profile' ) );
+		add_shortcode( 'organizer_ticket', array( __CLASS__, 'render_ticket' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 	}
 
@@ -142,6 +144,56 @@ class Shortcodes {
 			include $view_file;
 		} else {
 			echo '<p>' . esc_html__( 'Profile view not found.', 'organizer' ) . '</p>';
+		}
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render the ticket shortcode.
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string HTML output.
+	 */
+	public static function render_ticket( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'token' => '',
+			),
+			$atts,
+			'organizer_ticket'
+		);
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$token = isset( $_GET['token'] ) ? sanitize_text_field( wp_unslash( $_GET['token'] ) ) : $atts['token'];
+
+		if ( empty( $token ) ) {
+			return '<p>' . esc_html__( 'Invalid ticket token.', 'organizer' ) . '</p>';
+		}
+
+		$registration = Registration::get_by_token( $token );
+
+		if ( ! $registration ) {
+			return '<p>' . esc_html__( 'Ticket not found.', 'organizer' ) . '</p>';
+		}
+
+		// Generate QR Code URL (using admin-post for checkin).
+		$checkin_url = admin_url( 'admin-post.php?action=organizer_checkin&token=' . $token );
+		$qr_service  = new QrCodeService();
+		$upload_dir  = wp_upload_dir();
+		$filename    = 'qr-' . $token . '.png';
+		$filepath    = $upload_dir['basedir'] . '/' . $filename;
+		$fileurl     = $upload_dir['baseurl'] . '/' . $filename;
+
+		if ( ! file_exists( $filepath ) ) {
+			$qr_service->generate_file( $checkin_url, $filepath );
+		}
+
+		ob_start();
+		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/ticket.php';
+		if ( file_exists( $view_file ) ) {
+			include $view_file;
+		} else {
+			echo '<p>' . esc_html__( 'Ticket view not found.', 'organizer' ) . '</p>';
 		}
 		return ob_get_clean();
 	}

@@ -12,6 +12,7 @@
 
 namespace Organizer;
 
+use Organizer\Admin\CheckinHandler;
 use Organizer\Admin\DashboardWidget;
 use Organizer\Admin\ExportHandler;
 use Organizer\Admin\MetaBox;
@@ -77,6 +78,7 @@ class Plugin {
 		Shortcodes::init();
 		ExportHandler::init();
 		FormHandler::init();
+		CheckinHandler::init();
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'organizer', RemindersCommand::class );

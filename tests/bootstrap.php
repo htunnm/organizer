@@ -363,6 +363,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'home_url' ) ) {
+		function home_url( $path = '', $scheme = null ) {
+			return 'http://example.com/' . $path;
+		}
+	}
+
 	if ( ! function_exists( 'wp_nonce_field' ) ) {
 		function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $echo = true ) {
 			if ( $echo ) {
@@ -437,6 +443,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 				return new WP_Error( 'invalid_user_id', 'Invalid user ID.' );
 			}
 			return $userdata['ID'];
+		}
+	}
+
+	if ( ! function_exists( 'wp_generate_password' ) ) {
+		function wp_generate_password( $length = 12, $special_chars = true, $extra_special_chars = false ) {
+			return 'mock_password_' . $length;
 		}
 	}
 
