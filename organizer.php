@@ -14,6 +14,7 @@ namespace Organizer;
 
 use Organizer\Admin\CheckinHandler;
 use Organizer\Admin\DashboardWidget;
+use Organizer\Admin\EventDuplicator;
 use Organizer\Admin\DiscountCodesPage;
 use Organizer\Admin\ExportHandler;
 use Organizer\Admin\MetaBox;
@@ -89,6 +90,7 @@ class Plugin {
 		CheckinHandler::init();
 		DiscountCodesPage::init();
 		AjaxHandler::init();
+		EventDuplicator::init();
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'organizer', RemindersCommand::class );

@@ -281,6 +281,13 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'update_post_meta' ) ) {
+		function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) {
+			WPMocks::$post_meta[ $post_id ][ $meta_key ] = $meta_value;
+			return true;
+		}
+	}
+
 	if ( ! function_exists( 'register_rest_route' ) ) {
 		function register_rest_route( $namespace, $route, $args = array(), $override = false ) {
 			WPMocks::$rest_routes[] = array( $namespace, $route, $args );
@@ -389,6 +396,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 
 	if ( ! function_exists( 'wp_verify_nonce' ) ) {
 		function wp_verify_nonce( $nonce, $action = -1 ) {
+			return true;
+		}
+	}
+
+	if ( ! function_exists( 'check_admin_referer' ) ) {
+		function check_admin_referer( $action = -1, $query_arg = '_wpnonce' ) {
 			return true;
 		}
 	}
@@ -703,6 +716,52 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 
 	if ( ! function_exists( 'wp_reset_postdata' ) ) {
 		function wp_reset_postdata() {}
+	}
+
+	if ( ! function_exists( 'get_post' ) ) {
+		function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
+			if ( is_object( $post ) ) {
+				return $post;
+			}
+			return (object) array(
+				'ID'                    => 1,
+				'post_author'           => 1,
+				'post_date'             => '2023-01-01 12:00:00',
+				'post_content'          => 'Content',
+				'post_title'            => 'Original Title',
+				'post_excerpt'          => '',
+				'post_status'           => 'publish',
+				'comment_status'        => 'closed',
+				'ping_status'           => 'closed',
+				'post_password'         => '',
+				'post_name'             => 'original-title',
+				'to_ping'               => '',
+				'pinged'                => '',
+				'post_modified'         => '2023-01-01 12:00:00',
+				'post_modified_gmt'     => '2023-01-01 12:00:00',
+				'post_content_filtered' => '',
+				'post_parent'           => 0,
+				'guid'                  => '',
+				'menu_order'            => 0,
+				'post_type'             => 'organizer_event',
+				'post_mime_type'        => '',
+				'comment_count'         => 0,
+				'filter'                => 'raw',
+			);
+		}
+	}
+
+	if ( ! function_exists( 'wp_insert_post' ) ) {
+		function wp_insert_post( $postarr, $wp_error = false ) {
+			return 101; // New post ID.
+		}
+	}
+
+	if ( ! function_exists( 'delete_post_meta' ) ) {
+		function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
+			unset( WPMocks::$post_meta[ $post_id ][ $meta_key ] );
+			return true;
+		}
 	}
 
 	// Mock upgrade.php required by Registration model
