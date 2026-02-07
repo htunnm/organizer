@@ -5,6 +5,7 @@
     <file>.</file>
     <exclude-pattern>/vendor/</exclude-pattern>
     <exclude-pattern>/tests/</exclude-pattern>
+    <exclude-pattern>*/wp-admin/*</exclude-pattern>
 
     <arg value="sp"/> <!-- Show progress and sniff names -->
     <arg name="basepath" value="."/>

@@ -12,6 +12,20 @@
 
 namespace Organizer;
 
+use Organizer\Admin\DashboardWidget;
+use Organizer\Admin\MetaBox;
+use Organizer\Admin\RegistrationsPage;
+use Organizer\Admin\SessionsPage;
+use Organizer\Admin\Settings;
+use Organizer\Cli\RemindersCommand;
+use Organizer\Model\Event;
+use Organizer\Model\Registration;
+use Organizer\Model\RSVP;
+use Organizer\Model\Waitlist;
+use Organizer\Rest\RegistrationController;
+use Organizer\Rest\RSVPController;
+use Organizer\Rest\WaitlistController;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -34,6 +48,29 @@ class Plugin {
 	 */
 	public static function init() {
 		// Initialize hooks here.
+		add_action( 'init', array( Event::class, 'register' ) );
+		add_action(
+			'rest_api_init',
+			function () {
+				$controller = new RegistrationController();
+				$controller->register_routes();
+				$rsvp_controller = new RSVPController();
+				$rsvp_controller->register_routes();
+				$waitlist_controller = new WaitlistController();
+				$waitlist_controller->register_routes();
+				$session_controller = new SessionController();
+				$session_controller->register_routes();
+			}
+		);
+		Settings::init();
+		RegistrationsPage::init();
+		SessionsPage::init();
+		DashboardWidget::init();
+		MetaBox::init();
+
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			\WP_CLI::add_command( 'organizer', RemindersCommand::class );
+		}
 	}
 
 	/**
@@ -41,6 +78,13 @@ class Plugin {
 	 */
 	public static function activate() {
 		// Flush rewrite rules, create tables, etc.
+		Event::register();
+		Registration::create_table();
+		RSVP::create_table();
+		Waitlist::create_table();
+		Session::create_table();
+		Log::create_table();
+		flush_rewrite_rules();
 	}
 
 	/**
