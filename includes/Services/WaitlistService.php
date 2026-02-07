@@ -83,4 +83,56 @@ class WaitlistService {
 
 		return true;
 	}
+
+	/**
+	 * Promote a specific user from the waitlist (manual override).
+	 *
+	 * @param int $waitlist_id Waitlist ID.
+	 * @return bool True if promoted.
+	 */
+	public function promote_user( $waitlist_id ) {
+		global $wpdb;
+		$table_name = Waitlist::get_table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$user = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $waitlist_id ) );
+
+		if ( ! $user ) {
+			return false;
+		}
+
+		$options = get_option( 'organizer_options' );
+		$hours   = isset( $options['organizer_waitlist_expiration'] ) ? (int) $options['organizer_waitlist_expiration'] : 24;
+
+		$data = array(
+			'event_id'   => $user->event_id,
+			'session_id' => $user->session_id,
+			'name'       => $user->name,
+			'email'      => $user->email,
+			'status'     => 'pending',
+			'expires_at' => gmdate( 'Y-m-d H:i:s', time() + ( $hours * 3600 ) ),
+		);
+
+		$registration_id = Registration::create( $data );
+
+		if ( ! $registration_id ) {
+			return false;
+		}
+
+		Waitlist::remove( $user->id );
+
+		Logger::log( 'waitlist_promotion_manual', "Manually promoted user $user->id from waitlist", $user->event_id, $user->session_id );
+
+		$template_service = new TemplateService();
+		$template         = $template_service->get_template( 'waitlist_promotion', $user->event_id );
+		$placeholders     = array(
+			'attendee_name' => esc_html( $user->name ),
+			'event_title'   => get_the_title( $user->event_id ),
+		);
+		$subject          = $template_service->render( $template['subject'], $placeholders );
+		$message          = $template_service->render( $template['message'], $placeholders );
+
+		$this->email_service->send( $user->email, $subject, nl2br( $message ) );
+
+		return true;
+	}
 }

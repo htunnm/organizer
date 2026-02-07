@@ -20,6 +20,7 @@ use Organizer\Admin\EventSearchWidget;
 use Organizer\Admin\EventDuplicator;
 use Organizer\Admin\ImportPage;
 use Organizer\Admin\DiscountCodesPage;
+use Organizer\Admin\WaitlistPage;
 use Organizer\Admin\ExportHandler;
 use Organizer\Admin\MetaBox;
 use Organizer\Admin\RegistrationsPage;
@@ -102,6 +103,7 @@ class Plugin {
 		AjaxHandler::init();
 		EventDuplicator::init();
 		ImportPage::init();
+		WaitlistPage::init();
 		CalendarBlock::init();
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
