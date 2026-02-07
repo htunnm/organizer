@@ -114,6 +114,20 @@ class Registration {
 	}
 
 	/**
+	 * Update email for registrations.
+	 *
+	 * @param string $old_email Old email.
+	 * @param string $new_email New email.
+	 * @return int|false Number of rows updated or false on error.
+	 */
+	public static function update_email( $old_email, $new_email ) {
+		global $wpdb;
+		$table_name = self::get_table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return $wpdb->update( $table_name, array( 'email' => $new_email ), array( 'email' => $old_email ) );
+	}
+
+	/**
 	 * Get registrations for export.
 	 *
 	 * @return array List of registrations with RSVP status.

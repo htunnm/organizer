@@ -22,6 +22,7 @@ class Shortcodes {
 		add_shortcode( 'organizer_calendar', array( __CLASS__, 'render_calendar' ) );
 		add_shortcode( 'organizer_registration_form', array( __CLASS__, 'render_registration_form' ) );
 		add_shortcode( 'organizer_user_dashboard', array( __CLASS__, 'render_user_dashboard' ) );
+		add_shortcode( 'organizer_user_profile', array( __CLASS__, 'render_user_profile' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 	}
 
@@ -119,6 +120,28 @@ class Shortcodes {
 			include $view_file;
 		} else {
 			echo '<p>' . esc_html__( 'Dashboard view not found.', 'organizer' ) . '</p>';
+		}
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render the user profile shortcode.
+	 *
+	 * @return string HTML output.
+	 */
+	public static function render_user_profile() {
+		if ( ! is_user_logged_in() ) {
+			return '<p>' . esc_html__( 'Please log in to edit your profile.', 'organizer' ) . '</p>';
+		}
+
+		$current_user = wp_get_current_user();
+
+		ob_start();
+		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/user-profile.php';
+		if ( file_exists( $view_file ) ) {
+			include $view_file;
+		} else {
+			echo '<p>' . esc_html__( 'Profile view not found.', 'organizer' ) . '</p>';
 		}
 		return ob_get_clean();
 	}

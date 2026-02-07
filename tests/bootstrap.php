@@ -417,7 +417,18 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 			$user             = new stdClass();
 			$user->ID         = 1;
 			$user->user_email = 'test@example.com';
+			$user->first_name = 'Test';
+			$user->last_name  = 'User';
 			return $user;
+		}
+	}
+
+	if ( ! function_exists( 'wp_update_user' ) ) {
+		function wp_update_user( $userdata ) {
+			if ( empty( $userdata['ID'] ) ) {
+				return new WP_Error( 'invalid_user_id', 'Invalid user ID.' );
+			}
+			return $userdata['ID'];
 		}
 	}
 

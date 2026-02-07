@@ -27,6 +27,7 @@ class FormHandler {
 		add_action( 'admin_post_organizer_register', array( __CLASS__, 'handle_registration' ) );
 		add_action( 'admin_post_nopriv_organizer_register', array( __CLASS__, 'handle_registration' ) );
 		add_action( 'admin_post_organizer_cancel_registration', array( __CLASS__, 'handle_cancellation' ) );
+		add_action( 'admin_post_organizer_update_profile', array( __CLASS__, 'handle_profile_update' ) );
 	}
 
 	/**
@@ -147,6 +148,52 @@ class FormHandler {
 		}
 
 		wp_safe_redirect( add_query_arg( 'organizer_cancellation', 'success', wp_get_referer() ) );
+		exit;
+	}
+
+	/**
+	 * Handle profile update.
+	 */
+	public static function handle_profile_update() {
+		if ( ! is_user_logged_in() ) {
+			wp_die( esc_html__( 'You must be logged in to update your profile.', 'organizer' ) );
+		}
+
+		if ( ! isset( $_POST['organizer_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['organizer_nonce'] ) ), 'organizer_profile_nonce' ) ) {
+			wp_die( esc_html__( 'Invalid nonce.', 'organizer' ) );
+		}
+
+		$current_user = wp_get_current_user();
+		$user_id      = $current_user->ID;
+		$first_name   = isset( $_POST['first_name'] ) ? sanitize_text_field( wp_unslash( $_POST['first_name'] ) ) : '';
+		$last_name    = isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( $_POST['last_name'] ) ) : '';
+		$email        = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+
+		if ( ! is_email( $email ) ) {
+			wp_safe_redirect( add_query_arg( 'organizer_profile_update', 'error', wp_get_referer() ) );
+			exit;
+		}
+
+		$user_data = array(
+			'ID'         => $user_id,
+			'first_name' => $first_name,
+			'last_name'  => $last_name,
+			'user_email' => $email,
+		);
+
+		$updated_user_id = wp_update_user( $user_data );
+
+		if ( is_wp_error( $updated_user_id ) ) {
+			wp_safe_redirect( add_query_arg( 'organizer_profile_update', 'error', wp_get_referer() ) );
+			exit;
+		}
+
+		// Update past registrations if email changed.
+		if ( $email !== $current_user->user_email ) {
+			Registration::update_email( $current_user->user_email, $email );
+		}
+
+		wp_safe_redirect( add_query_arg( 'organizer_profile_update', 'success', wp_get_referer() ) );
 		exit;
 	}
 }
