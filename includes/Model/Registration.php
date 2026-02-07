@@ -208,6 +208,7 @@ class Registration {
 			amount int(11) DEFAULT 0,
 			checkin_token varchar(64) DEFAULT '',
 			checked_in_at datetime DEFAULT NULL,
+			expires_at datetime DEFAULT NULL,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			PRIMARY KEY  (id),
 			KEY event_id (event_id),

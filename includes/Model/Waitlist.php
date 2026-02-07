@@ -37,6 +37,7 @@ class Waitlist {
 			'session_id' => isset( $data['session_id'] ) ? $data['session_id'] : 0,
 			'name'       => $data['name'],
 			'email'      => $data['email'],
+			'priority'   => isset( $data['priority'] ) ? (int) $data['priority'] : 0,
 		);
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
@@ -63,6 +64,7 @@ class Waitlist {
 			session_id bigint(20) unsigned DEFAULT 0,
 			name varchar(255) NOT NULL,
 			email varchar(255) NOT NULL,
+			priority int(11) DEFAULT 0,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			PRIMARY KEY  (id),
 			KEY event_id (event_id),
@@ -85,10 +87,10 @@ class Waitlist {
 		$table_name = self::get_table_name();
 		if ( $session_id > 0 ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE event_id = %d AND session_id = %d ORDER BY created_at ASC LIMIT 1", $event_id, $session_id ) );
+			return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE event_id = %d AND session_id = %d ORDER BY priority DESC, created_at ASC LIMIT 1", $event_id, $session_id ) );
 		}
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE event_id = %d ORDER BY created_at ASC LIMIT 1", $event_id ) );
+		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE event_id = %d ORDER BY priority DESC, created_at ASC LIMIT 1", $event_id ) );
 	}
 
 	/**

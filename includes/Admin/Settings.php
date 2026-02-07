@@ -55,6 +55,18 @@ class Settings {
 			'organizer_general_section'
 		);
 
+		add_settings_field(
+			'organizer_waitlist_expiration',
+			__( 'Waitlist Expiration (Hours)', 'organizer' ),
+			array( __CLASS__, 'render_number_field' ),
+			'organizer-settings',
+			'organizer_general_section',
+			array(
+				'id'      => 'organizer_waitlist_expiration',
+				'default' => 24,
+			)
+		);
+
 		add_settings_section(
 			'organizer_payment_section',
 			__( 'Payment Settings', 'organizer' ),
@@ -172,6 +184,19 @@ class Settings {
 		$default = isset( $args['default'] ) ? $args['default'] : '';
 		$value   = isset( $options[ $id ] ) ? $options[ $id ] : $default;
 		echo '<input type="text" name="organizer_options[' . esc_attr( $id ) . ']" value="' . esc_attr( $value ) . '" class="regular-text">';
+	}
+
+	/**
+	 * Render a generic number field.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public static function render_number_field( $args ) {
+		$options = get_option( 'organizer_options' );
+		$id      = $args['id'];
+		$default = isset( $args['default'] ) ? $args['default'] : '';
+		$value   = isset( $options[ $id ] ) ? $options[ $id ] : $default;
+		echo '<input type="number" name="organizer_options[' . esc_attr( $id ) . ']" value="' . esc_attr( $value ) . '" class="small-text">';
 	}
 
 	/**

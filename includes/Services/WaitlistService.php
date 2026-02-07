@@ -47,12 +47,16 @@ class WaitlistService {
 			return false;
 		}
 
+		$options = get_option( 'organizer_options' );
+		$hours   = isset( $options['organizer_waitlist_expiration'] ) ? (int) $options['organizer_waitlist_expiration'] : 24;
+
 		$data = array(
 			'event_id'   => $event_id,
 			'session_id' => $session_id,
 			'name'       => $next_user->name,
 			'email'      => $next_user->email,
 			'status'     => 'pending',
+			'expires_at' => gmdate( 'Y-m-d H:i:s', time() + ( $hours * 3600 ) ),
 		);
 
 		$registration_id = Registration::create( $data );

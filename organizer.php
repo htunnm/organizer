@@ -20,6 +20,7 @@ use Organizer\Admin\RegistrationsPage;
 use Organizer\Admin\SessionsPage;
 use Organizer\Admin\Settings;
 use Organizer\Cli\RemindersCommand;
+use Organizer\Cli\ExpirationCommand;
 use Organizer\Frontend\FormHandler;
 use Organizer\Frontend\Shortcodes;
 use Organizer\Model\Event;
@@ -82,6 +83,7 @@ class Plugin {
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'organizer', RemindersCommand::class );
+			\WP_CLI::add_command( 'organizer process-expirations', array( ExpirationCommand::class, 'process_expirations' ) );
 		}
 	}
 

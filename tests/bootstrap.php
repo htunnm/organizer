@@ -215,6 +215,9 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 			if ( 'time_format' === $option ) {
 				return 'H:i';
 			}
+			if ( 'organizer_options' === $option && false === $default ) {
+				return array();
+			}
 			return $default;
 		}
 	}
