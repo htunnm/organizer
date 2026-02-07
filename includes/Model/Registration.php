@@ -114,6 +114,25 @@ class Registration {
 	}
 
 	/**
+	 * Get registrations for export.
+	 *
+	 * @return array List of registrations with RSVP status.
+	 */
+	public static function get_for_export() {
+		global $wpdb;
+		$table_name = self::get_table_name();
+		$rsvp_table = $wpdb->prefix . 'organizer_rsvps';
+
+		$sql = "SELECT r.*, rv.response as rsvp_status 
+			FROM $table_name r 
+			LEFT JOIN $rsvp_table rv ON r.id = rv.registration_id 
+			ORDER BY r.created_at DESC";
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		return $wpdb->get_results( $sql, ARRAY_A );
+	}
+
+	/**
 	 * Count all registrations.
 	 *
 	 * @return int Count.

@@ -42,6 +42,9 @@ class RegistrationsPage {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'Registrations', 'organizer' ); ?></h1>
+			<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=organizer_export_registrations' ), 'organizer_export_registrations', 'organizer_export_nonce' ) ); ?>" class="page-title-action">
+				<?php esc_html_e( 'Export CSV', 'organizer' ); ?>
+			</a>
 			<form method="post">
 				<?php $table->display(); ?>
 			</form>

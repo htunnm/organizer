@@ -13,6 +13,7 @@
 namespace Organizer;
 
 use Organizer\Admin\DashboardWidget;
+use Organizer\Admin\ExportHandler;
 use Organizer\Admin\MetaBox;
 use Organizer\Admin\RegistrationsPage;
 use Organizer\Admin\SessionsPage;
@@ -68,6 +69,7 @@ class Plugin {
 		DashboardWidget::init();
 		MetaBox::init();
 		Shortcodes::init();
+		ExportHandler::init();
 		FormHandler::init();
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {

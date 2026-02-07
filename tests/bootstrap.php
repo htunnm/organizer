@@ -364,6 +364,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'wp_nonce_url' ) ) {
+		function wp_nonce_url( $actionurl, $action = -1, $name = '_wpnonce' ) {
+			return add_query_arg( $name, 'mock_nonce', $actionurl );
+		}
+	}
+
 	if ( ! function_exists( 'wp_die' ) ) {
 		function wp_die( $message = '', $title = '', $args = array() ) {
 			throw new Exception( 'wp_die: ' . $message );
