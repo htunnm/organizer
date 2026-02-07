@@ -81,4 +81,17 @@ class ShortcodesTest extends \PHPUnit\Framework\TestCase {
 		$this->assertStringContainsString( 'organizer-progress-bar', $output );
 		$this->assertStringContainsString( 'data-step="1"', $output );
 	}
+
+	/**
+	 * Test render_analytics_dashboard outputs dashboard for authorized user.
+	 */
+	public function test_render_analytics_dashboard_authorized() {
+		global $wpdb;
+		$wpdb->get_var_return = 5; // Mock stats.
+
+		$output = Shortcodes::render_analytics_dashboard();
+
+		$this->assertStringContainsString( 'organizer-analytics-dashboard', $output );
+		$this->assertStringContainsString( 'Event Analytics', $output );
+	}
 }

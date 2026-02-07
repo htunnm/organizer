@@ -156,6 +156,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'get_permalink' ) ) {
+		function get_permalink( $post = 0 ) {
+			return 'http://example.com/post/' . $post;
+		}
+	}
+
 	if ( ! function_exists( '__' ) ) {
 		function __( $text, $domain = 'default' ) {
 			return $text;
@@ -665,6 +671,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'get_the_ID' ) ) {
+		function get_the_ID() {
+			return 1;
+		}
+	}
+
 	if ( ! function_exists( 'update_user_meta' ) ) {
 		function update_user_meta( $user_id, $meta_key, $meta_value, $prev_value = '' ) {
 			WPMocks::$post_meta[ $user_id ][ $meta_key ] = $meta_value; // Reuse post_meta mock for user meta for simplicity.
@@ -676,6 +688,21 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		function get_user_meta( $user_id, $key = '', $single = false ) {
 			return isset( WPMocks::$post_meta[ $user_id ][ $key ] ) ? WPMocks::$post_meta[ $user_id ][ $key ] : '';
 		}
+	}
+
+	if ( ! class_exists( 'WP_Query' ) ) {
+		class WP_Query {
+			public $posts = array();
+			public $post;
+			public function __construct( $args = array() ) {}
+			public function have_posts() {
+				return false; }
+			public function the_post() {}
+		}
+	}
+
+	if ( ! function_exists( 'wp_reset_postdata' ) ) {
+		function wp_reset_postdata() {}
 	}
 
 	// Mock upgrade.php required by Registration model

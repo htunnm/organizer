@@ -10,6 +10,7 @@ namespace Organizer\Frontend;
 use Organizer\Model\Session;
 use Organizer\Model\Registration;
 use Organizer\Services\QrCodeService;
+use Organizer\Services\AnalyticsService;
 
 /**
  * Class Shortcodes
@@ -25,6 +26,7 @@ class Shortcodes {
 		add_shortcode( 'organizer_user_dashboard', array( __CLASS__, 'render_user_dashboard' ) );
 		add_shortcode( 'organizer_user_profile', array( __CLASS__, 'render_user_profile' ) );
 		add_shortcode( 'organizer_ticket', array( __CLASS__, 'render_ticket' ) );
+		add_shortcode( 'organizer_analytics_dashboard', array( __CLASS__, 'render_analytics_dashboard' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 	}
 
@@ -34,6 +36,7 @@ class Shortcodes {
 	public static function enqueue_assets() {
 		wp_register_style( 'organizer-calendar', ORGANIZER_URL . 'assets/css/calendar.css', array(), ORGANIZER_VERSION );
 		wp_register_style( 'organizer-dashboard', ORGANIZER_URL . 'assets/css/dashboard.css', array(), ORGANIZER_VERSION );
+		wp_register_style( 'organizer-analytics', ORGANIZER_URL . 'assets/css/frontend-analytics.css', array(), ORGANIZER_VERSION );
 		wp_register_style( 'organizer-registration', ORGANIZER_URL . 'assets/css/registration.css', array(), ORGANIZER_VERSION );
 		wp_register_script( 'organizer-frontend', ORGANIZER_URL . 'assets/js/frontend.js', array( 'jquery' ), ORGANIZER_VERSION, true );
 		wp_localize_script( 'organizer-frontend', 'organizer_ajax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
@@ -224,6 +227,57 @@ class Shortcodes {
 			include $view_file;
 		} else {
 			echo '<p>' . esc_html__( 'Ticket view not found.', 'organizer' ) . '</p>';
+		}
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render the analytics dashboard shortcode.
+	 *
+	 * @return string HTML output.
+	 */
+	public static function render_analytics_dashboard() {
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			return '<p>' . esc_html__( 'You do not have permission to view this dashboard.', 'organizer' ) . '</p>';
+		}
+
+		wp_enqueue_style( 'organizer-analytics' );
+
+		$analytics = new AnalyticsService();
+		$stats     = $analytics->get_registration_stats();
+		$daily     = $analytics->get_daily_registrations();
+		$wl_stats  = $analytics->get_waitlist_metrics();
+		$wl_growth = $analytics->get_waitlist_growth();
+
+		// Fetch upcoming events authored by current user.
+		$args = array(
+			'post_type'      => 'organizer_event',
+			'posts_per_page' => 10,
+			'post_status'    => 'publish',
+			'author'         => get_current_user_id(),
+		);
+
+		$events          = new \WP_Query( $args );
+		$upcoming_events = array();
+
+		if ( $events->have_posts() ) {
+			while ( $events->have_posts() ) {
+				$events->the_post();
+				$upcoming_events[] = array(
+					'title' => get_the_title(),
+					'count' => Registration::count_by_event( get_the_ID() ),
+					'link'  => get_permalink(),
+				);
+			}
+			wp_reset_postdata();
+		}
+
+		ob_start();
+		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/analytics-dashboard.php';
+		if ( file_exists( $view_file ) ) {
+			include $view_file;
+		} else {
+			echo '<p>' . esc_html__( 'Analytics dashboard view not found.', 'organizer' ) . '</p>';
 		}
 		return ob_get_clean();
 	}
