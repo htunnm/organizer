@@ -96,7 +96,14 @@ class FormHandler {
 		}
 
 		// Check capacity.
-		if ( Event::is_full( $event_id ) ) {
+		$is_full = false;
+		if ( $session_id > 0 ) {
+			$is_full = Session::is_full( $session_id );
+		} elseif ( Event::is_full( $event_id ) ) {
+			$is_full = true;
+		}
+
+		if ( $is_full ) {
 			Waitlist::add( $data );
 			// Send waitlist email (simplified for brevity, similar to API).
 			wp_safe_redirect( add_query_arg( 'organizer_registration', 'waitlist', wp_get_referer() ) );

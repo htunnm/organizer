@@ -94,11 +94,17 @@ class SeriesGenerator {
 		$end_dt = clone $start_dt;
 		$end_dt->add( new DateInterval( 'PT' . $duration . 'M' ) );
 
+		$capacity = (int) get_post_meta( $event_id, '_organizer_event_capacity', true );
+		if ( empty( $capacity ) ) {
+			$capacity = -1;
+		}
+
 		$data = array(
 			'event_id'       => $event_id,
 			'start_datetime' => $start_dt->format( 'Y-m-d H:i:s' ),
 			'end_datetime'   => $end_dt->format( 'Y-m-d H:i:s' ),
 			'status'         => 'scheduled',
+			'capacity'       => $capacity,
 		);
 
 		return Session::create( $data );

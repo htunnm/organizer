@@ -38,6 +38,8 @@ class SeriesGeneratorTest extends \PHPUnit\Framework\TestCase {
 			'start_time' => '10:00:00',
 		);
 
+		WPMocks::$post_meta[1]['_organizer_event_capacity'] = 20;
+
 		$ids = $generator->generate_sessions( 1, $rules );
 		$this->assertCount( 1, $ids );
 	}

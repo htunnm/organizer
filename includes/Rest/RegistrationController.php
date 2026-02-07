@@ -93,8 +93,19 @@ class RegistrationController extends WP_REST_Controller {
 			'status'   => 'pending',
 		);
 
+		if ( ! empty( $params['session_id'] ) ) {
+			$data['session_id'] = absint( $params['session_id'] );
+		}
+
 		// Check capacity.
-		if ( Event::is_full( $data['event_id'] ) ) {
+		$is_full = false;
+		if ( ! empty( $data['session_id'] ) ) {
+			$is_full = Session::is_full( $data['session_id'] );
+		} elseif ( Event::is_full( $data['event_id'] ) ) {
+			$is_full = true;
+		}
+
+		if ( $is_full ) {
 			$id = Waitlist::add( $data );
 
 			if ( ! $id ) {

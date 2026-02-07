@@ -178,4 +178,36 @@ class Session {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		return $wpdb->update( $table_name, array( 'status' => 'cancelled' ), array( 'id' => $id ) );
 	}
+
+	/**
+	 * Check if session is full.
+	 *
+	 * @param int $session_id Session ID.
+	 * @return bool True if full.
+	 */
+	public static function is_full( $session_id ) {
+		$session = self::get( $session_id );
+		if ( ! $session || $session->capacity < 0 ) {
+			return false; // No limit or not found.
+		}
+
+		$count = Registration::count_by_session( $session_id );
+		return $count >= $session->capacity;
+	}
+
+	/**
+	 * Get remaining spots for a session.
+	 *
+	 * @param int $session_id Session ID.
+	 * @return int|string Number of spots or 'Unlimited'.
+	 */
+	public static function get_remaining_spots( $session_id ) {
+		$session = self::get( $session_id );
+		if ( ! $session || $session->capacity < 0 ) {
+			return 'Unlimited';
+		}
+
+		$count = Registration::count_by_session( $session_id );
+		return max( 0, $session->capacity - $count );
+	}
 }

@@ -64,6 +64,19 @@ class Registration {
 	}
 
 	/**
+	 * Count registrations for a session.
+	 *
+	 * @param int $session_id Session ID.
+	 * @return int Count.
+	 */
+	public static function count_by_session( $session_id ) {
+		global $wpdb;
+		$table_name = self::get_table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE session_id = %d AND status != 'cancelled'", $session_id ) );
+	}
+
+	/**
 	 * Get attendees for an event.
 	 *
 	 * @param int $event_id Event ID.
