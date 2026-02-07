@@ -27,6 +27,7 @@ class Shortcodes {
 		add_shortcode( 'organizer_user_profile', array( __CLASS__, 'render_user_profile' ) );
 		add_shortcode( 'organizer_ticket', array( __CLASS__, 'render_ticket' ) );
 		add_shortcode( 'organizer_analytics_dashboard', array( __CLASS__, 'render_analytics_dashboard' ) );
+		add_shortcode( 'organizer_checkin_scanner', array( __CLASS__, 'render_checkin_scanner' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 	}
 
@@ -40,6 +41,10 @@ class Shortcodes {
 		wp_register_style( 'organizer-registration', ORGANIZER_URL . 'assets/css/registration.css', array(), ORGANIZER_VERSION );
 		wp_register_script( 'organizer-frontend', ORGANIZER_URL . 'assets/js/frontend.js', array( 'jquery' ), ORGANIZER_VERSION, true );
 		wp_localize_script( 'organizer-frontend', 'organizer_ajax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+
+		// Scanner assets.
+		wp_register_script( 'html5-qrcode', 'https://unpkg.com/html5-qrcode', array(), '2.3.8', true );
+		wp_register_script( 'organizer-scanner', ORGANIZER_URL . 'assets/js/scanner.js', array( 'jquery', 'html5-qrcode' ), ORGANIZER_VERSION, true );
 	}
 
 	/**
@@ -278,6 +283,34 @@ class Shortcodes {
 			include $view_file;
 		} else {
 			echo '<p>' . esc_html__( 'Analytics dashboard view not found.', 'organizer' ) . '</p>';
+		}
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render the check-in scanner shortcode.
+	 *
+	 * @return string HTML output.
+	 */
+	public static function render_checkin_scanner() {
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			return '<p>' . esc_html__( 'You do not have permission to access the scanner.', 'organizer' ) . '</p>';
+		}
+
+		wp_enqueue_script( 'organizer-scanner' );
+		wp_localize_script(
+			'organizer-scanner',
+			'organizer_scanner',
+			array(
+				'api_url' => rest_url( 'organizer/v1/checkin' ),
+				'nonce'   => wp_create_nonce( 'wp_rest' ),
+			)
+		);
+
+		ob_start();
+		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/scanner.php';
+		if ( file_exists( $view_file ) ) {
+			include $view_file;
 		}
 		return ob_get_clean();
 	}

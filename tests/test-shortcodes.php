@@ -94,4 +94,13 @@ class ShortcodesTest extends \PHPUnit\Framework\TestCase {
 		$this->assertStringContainsString( 'organizer-analytics-dashboard', $output );
 		$this->assertStringContainsString( 'Event Analytics', $output );
 	}
+
+	/**
+	 * Test render_checkin_scanner outputs scanner for authorized user.
+	 */
+	public function test_render_checkin_scanner_authorized() {
+		$output = Shortcodes::render_checkin_scanner();
+		$this->assertStringContainsString( 'organizer-scanner-wrapper', $output );
+		$this->assertStringContainsString( 'organizer-qr-reader', $output );
+	}
 }

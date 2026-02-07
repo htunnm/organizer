@@ -399,6 +399,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'rest_url' ) ) {
+		function rest_url( $path = '' ) {
+			return 'http://example.com/wp-json/' . $path;
+		}
+	}
+
 	if ( ! function_exists( 'wp_nonce_field' ) ) {
 		function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $echo = true ) {
 			if ( $echo ) {
@@ -411,6 +417,12 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 	if ( ! function_exists( 'wp_verify_nonce' ) ) {
 		function wp_verify_nonce( $nonce, $action = -1 ) {
 			return true;
+		}
+	}
+
+	if ( ! function_exists( 'wp_create_nonce' ) ) {
+		function wp_create_nonce( $action = -1 ) {
+			return 'mock_nonce';
 		}
 	}
 
