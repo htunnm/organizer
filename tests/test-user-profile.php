@@ -25,7 +25,8 @@ class UserProfileTest extends \PHPUnit\Framework\TestCase {
 		if ( isset( $wpdb ) ) {
 			$wpdb->update_return_value = false;
 		}
-		$_POST = array();
+		$_FILES = array();
+		$_POST  = array();
 	}
 
 	/**
@@ -54,5 +55,44 @@ class UserProfileTest extends \PHPUnit\Framework\TestCase {
 
 		// If we reached here without wp_die, and wp_safe_redirect was called (mocked), it's a success path.
 		$this->assertTrue( true );
+	}
+
+	/**
+	 * Test handle_profile_update with password change.
+	 */
+	public function test_handle_profile_update_password_success() {
+		$_POST['organizer_nonce']  = 'valid';
+		$_POST['email']            = 'test@example.com';
+		$_POST['password']         = 'newpassword';
+		$_POST['password_confirm'] = 'newpassword';
+
+		global $wpdb;
+		$wpdb->update_return_value = 1;
+
+		FormHandler::handle_profile_update();
+		$this->assertTrue( true );
+	}
+
+	/**
+	 * Test handle_profile_update with avatar upload.
+	 */
+	public function test_handle_profile_update_avatar_success() {
+		$_POST['organizer_nonce'] = 'valid';
+		$_POST['email']           = 'test@example.com';
+
+		$_FILES['organizer_avatar'] = array(
+			'name'     => 'avatar.jpg',
+			'type'     => 'image/jpeg',
+			'tmp_name' => '/tmp/avatar.jpg',
+			'error'    => 0,
+			'size'     => 123,
+		);
+
+		global $wpdb;
+		$wpdb->update_return_value = 1;
+
+		FormHandler::handle_profile_update();
+
+		$this->assertEquals( 101, WPMocks::$post_meta[1]['organizer_avatar'] );
 	}
 }

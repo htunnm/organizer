@@ -493,6 +493,46 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 		function wp_clear_scheduled_hook( $hook, $args = array() ) {}
 	}
 
+	if ( ! function_exists( 'wp_handle_upload' ) ) {
+		function wp_handle_upload( $file, $overrides ) {
+			return array(
+				'file' => $file['tmp_name'],
+				'url'  => 'http://example.com/uploads/' . $file['name'],
+				'type' => $file['type'],
+			);
+		}
+	}
+
+	if ( ! function_exists( 'wp_insert_attachment' ) ) {
+		function wp_insert_attachment( $attachment, $file, $parent_post_id = 0 ) {
+			return 101; // Mock attachment ID.
+		}
+	}
+
+	if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+		function wp_generate_attachment_metadata( $attachment_id, $file ) {
+			return array();
+		}
+	}
+
+	if ( ! function_exists( 'wp_update_attachment_metadata' ) ) {
+		function wp_update_attachment_metadata( $attachment_id, $data ) {
+			return true;
+		}
+	}
+
+	if ( ! function_exists( 'sanitize_file_name' ) ) {
+		function sanitize_file_name( $filename ) {
+			return preg_replace( '/[^a-zA-Z0-9._-]/', '', $filename );
+		}
+	}
+
+	if ( ! function_exists( 'wp_get_attachment_image' ) ) {
+		function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = false, $attr = '' ) {
+			return '<img src="mock_image.jpg">';
+		}
+	}
+
 	// Mock WP Classes
 	if ( ! class_exists( 'WP_Error' ) ) {
 		class WP_Error {
@@ -613,12 +653,28 @@ if ( getenv( 'WP_TESTS_DIR' ) ) {
 			public function update( $table, $data, $where, $format = null, $where_format = null ) {
 				return $this->update_return_value;
 			}
+			public function query( $query ) {
+				return true;
+			}
 		};
 	}
 
 	if ( ! function_exists( 'get_current_user_id' ) ) {
 		function get_current_user_id() {
 			return 1;
+		}
+	}
+
+	if ( ! function_exists( 'update_user_meta' ) ) {
+		function update_user_meta( $user_id, $meta_key, $meta_value, $prev_value = '' ) {
+			WPMocks::$post_meta[ $user_id ][ $meta_key ] = $meta_value; // Reuse post_meta mock for user meta for simplicity.
+			return true;
+		}
+	}
+
+	if ( ! function_exists( 'get_user_meta' ) ) {
+		function get_user_meta( $user_id, $key = '', $single = false ) {
+			return isset( WPMocks::$post_meta[ $user_id ][ $key ] ) ? WPMocks::$post_meta[ $user_id ][ $key ] : '';
 		}
 	}
 

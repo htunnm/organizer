@@ -326,6 +326,16 @@ class FormHandler {
 		$last_name    = isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( $_POST['last_name'] ) ) : '';
 		$email        = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
 
+		// Password fields.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$password = isset( $_POST['password'] ) ? wp_unslash( $_POST['password'] ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$password_confirm = isset( $_POST['password_confirm'] ) ? wp_unslash( $_POST['password_confirm'] ) : '';
+
+		if ( ! empty( $password ) && $password !== $password_confirm ) {
+			wp_die( esc_html__( 'Passwords do not match.', 'organizer' ) );
+		}
+
 		if ( ! is_email( $email ) ) {
 			wp_safe_redirect( add_query_arg( 'organizer_profile_update', 'error', wp_get_referer() ) );
 			exit;
@@ -338,6 +348,10 @@ class FormHandler {
 			'user_email' => $email,
 		);
 
+		if ( ! empty( $password ) ) {
+			$user_data['user_pass'] = $password;
+		}
+
 		$updated_user_id = wp_update_user( $user_data );
 
 		if ( is_wp_error( $updated_user_id ) ) {
@@ -348,6 +362,32 @@ class FormHandler {
 		// Update past registrations if email changed.
 		if ( $email !== $current_user->user_email ) {
 			Registration::update_email( $current_user->user_email, $email );
+		}
+
+		// Handle Avatar Upload.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if ( ! empty( $_FILES['organizer_avatar']['name'] ) ) {
+			if ( ! function_exists( 'wp_handle_upload' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
+
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$uploadedfile     = $_FILES['organizer_avatar'];
+			$upload_overrides = array( 'test_form' => false );
+
+			$movefile = wp_handle_upload( $uploadedfile, $upload_overrides );
+
+			if ( $movefile && ! isset( $movefile['error'] ) ) {
+				$attachment = array(
+					'post_mime_type' => $movefile['type'],
+					'post_title'     => sanitize_file_name( $uploadedfile['name'] ),
+					'post_content'   => '',
+					'post_status'    => 'inherit',
+				);
+				$attach_id  = wp_insert_attachment( $attachment, $movefile['file'] );
+				// Ideally generate metadata here too.
+				update_user_meta( $user_id, 'organizer_avatar', $attach_id );
+			}
 		}
 
 		wp_safe_redirect( add_query_arg( 'organizer_profile_update', 'success', wp_get_referer() ) );
