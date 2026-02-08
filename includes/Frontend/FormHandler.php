@@ -55,6 +55,27 @@ class FormHandler {
 			exit;
 		}
 
+		$options    = get_option( 'organizer_options' );
+		$secret_key = isset( $options['organizer_recaptcha_secret_key'] ) ? $options['organizer_recaptcha_secret_key'] : '';
+
+		if ( ! empty( $secret_key ) ) {
+			$recaptcha_response = isset( $_POST['g-recaptcha-response'] ) ? sanitize_text_field( wp_unslash( $_POST['g-recaptcha-response'] ) ) : '';
+			$verify_response    = wp_remote_post(
+				'https://www.google.com/recaptcha/api/siteverify',
+				array(
+					'body' => array(
+						'secret'   => $secret_key,
+						'response' => $recaptcha_response,
+					),
+				)
+			);
+			$response_body      = wp_remote_retrieve_body( $verify_response );
+			$result             = json_decode( $response_body );
+			if ( ! isset( $result->success ) || ! $result->success ) {
+				wp_die( esc_html__( 'Please verify that you are not a robot.', 'organizer' ) );
+			}
+		}
+
 		$data = array(
 			'event_id'   => $event_id,
 			'session_id' => $session_id,

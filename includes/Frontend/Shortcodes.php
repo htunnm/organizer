@@ -22,6 +22,8 @@ class Shortcodes {
 	 */
 	public static function init() {
 		add_shortcode( 'organizer_calendar', array( __CLASS__, 'render_calendar' ) );
+		add_shortcode( 'organizer_search_bar', array( __CLASS__, 'render_search_bar' ) );
+		add_shortcode( 'organizer_month_view', array( __CLASS__, 'render_month_view' ) );
 		add_shortcode( 'organizer_registration_form', array( __CLASS__, 'render_registration_form' ) );
 		add_shortcode( 'organizer_user_dashboard', array( __CLASS__, 'render_user_dashboard' ) );
 		add_shortcode( 'organizer_user_profile', array( __CLASS__, 'render_user_profile' ) );
@@ -43,6 +45,10 @@ class Shortcodes {
 		wp_register_script( 'organizer-frontend', ORGANIZER_URL . 'assets/js/frontend.js', array( 'jquery' ), ORGANIZER_VERSION, true );
 		wp_localize_script( 'organizer-frontend', 'organizer_ajax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 
+		// FullCalendar assets for month view.
+		wp_register_style( 'fullcalendar-css', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css', array(), '6.1.15' );
+		wp_register_script( 'fullcalendar-js', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js', array(), '6.1.15', true );
+
 		// Scanner assets.
 		wp_register_script( 'html5-qrcode', 'https://unpkg.com/html5-qrcode', array(), '2.3.8', true );
 		wp_register_script( 'organizer-scanner', ORGANIZER_URL . 'assets/js/scanner.js', array( 'jquery', 'html5-qrcode' ), ORGANIZER_VERSION, true );
@@ -56,6 +62,7 @@ class Shortcodes {
 	 */
 	public static function render_calendar( $atts ) {
 		wp_enqueue_style( 'organizer-calendar' );
+		wp_enqueue_style( 'dashicons' );
 
 		$atts = shortcode_atts(
 			array(
@@ -64,10 +71,13 @@ class Shortcodes {
 				'category'    => '',
 				'tag'         => '',
 				'show_search' => 'no',
+				'columns'     => 3,
 			),
 			$atts,
 			'organizer_calendar'
 		);
+
+		$columns = intval( $atts['columns'] );
 
 		$filters = array();
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -84,6 +94,16 @@ class Shortcodes {
 		if ( ! empty( $_GET['organizer_end_date'] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$filters['end_date'] = sanitize_text_field( wp_unslash( $_GET['organizer_end_date'] ) );
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_GET['organizer_city'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$filters['city'] = sanitize_text_field( wp_unslash( $_GET['organizer_city'] ) );
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_GET['organizer_days'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$filters['duration_days'] = intval( wp_unslash( $_GET['organizer_days'] ) );
 		}
 
 		if ( ! empty( $atts['tag'] ) ) {
@@ -115,6 +135,63 @@ class Shortcodes {
 	}
 
 	/**
+	 * Render the search bar shortcode.
+	 *
+	 * @param array  $atts Shortcode attributes.
+	 * @param string $content Shortcode content.
+	 * @return string HTML output.
+	 */
+	public static function render_search_bar( $atts = array(), $content = '' ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+		global $wpdb;
+
+		// Fetch distinct cities from the database.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$cities = $wpdb->get_col(
+			"SELECT DISTINCT meta_value FROM {$wpdb->postmeta} 
+			WHERE meta_key='_event_city' AND meta_value != '' 
+			ORDER BY meta_value ASC"
+		);
+
+		// Get current filter values from GET parameters.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$current_city = isset( $_GET['organizer_city'] ) ? sanitize_text_field( wp_unslash( $_GET['organizer_city'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$current_days = isset( $_GET['organizer_days'] ) ? intval( $_GET['organizer_days'] ) : '';
+
+		// Get current page URL safely.
+		$current_url = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+
+		ob_start();
+		?>
+		<div class="organizer-search-bar-container">
+			<form method="GET" action="<?php echo esc_url( $current_url ); ?>" class="organizer-search-bar-form">
+				<div class="organizer-search-bar-fields">
+					<div class="organizer-search-field">
+						<label for="organizer_city"><?php esc_html_e( 'Location (City)', 'organizer' ); ?></label>
+						<select name="organizer_city" id="organizer_city" class="organizer-search-input">
+							<option value=""><?php esc_html_e( 'All Cities', 'organizer' ); ?></option>
+							<?php foreach ( $cities as $city ) : ?>
+								<option value="<?php echo esc_attr( $city ); ?>" <?php selected( $current_city, $city ); ?>>
+									<?php echo esc_html( $city ); ?>
+								</option>
+							<?php endforeach; ?>
+						</select>
+					</div>
+
+					<div class="organizer-search-field">
+						<label for="organizer_days"><?php esc_html_e( 'Duration', 'organizer' ); ?></label>
+						<input type="number" name="organizer_days" id="organizer_days" class="organizer-search-input" placeholder="<?php esc_attr_e( 'Days', 'organizer' ); ?>" value="<?php echo esc_attr( $current_days ); ?>" min="0">
+					</div>
+				</div>
+
+				<button type="submit" class="organizer-search-btn"><?php esc_html_e( 'Find Events', 'organizer' ); ?></button>
+			</form>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
 	 * Render the registration form shortcode.
 	 *
 	 * @param array $atts Shortcode attributes.
@@ -133,13 +210,25 @@ class Shortcodes {
 		$event_id   = (int) $atts['event_id'];
 		$session_id = (int) $atts['session_id'];
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( empty( $event_id ) && isset( $_GET['event_id'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$event_id = absint( $_GET['event_id'] );
+		}
+
 		if ( empty( $event_id ) ) {
 			return '<p>' . esc_html__( 'Event ID is required.', 'organizer' ) . '</p>';
 		}
 
+		$options  = get_option( 'organizer_options' );
+		$site_key = isset( $options['organizer_recaptcha_site_key'] ) ? $options['organizer_recaptcha_site_key'] : '';
+		if ( ! empty( $site_key ) ) {
+			wp_enqueue_script( 'google-recaptcha', 'https://www.google.com/recaptcha/api.js', array(), ORGANIZER_VERSION, true );
+		}
+
 		ob_start();
 		wp_enqueue_style( 'organizer-registration' );
-		wp_enqueue_script( 'organizer-frontend' );
+		wp_enqueue_script( 'organizer-frontend', ORGANIZER_URL . 'assets/js/frontend.js', array( 'jquery' ), ORGANIZER_VERSION, true );
 		$view_file = ORGANIZER_PATH . 'includes/Frontend/views/registration-form.php';
 		if ( file_exists( $view_file ) ) {
 			include $view_file;
@@ -388,5 +477,56 @@ class Shortcodes {
 			include $view_file;
 		}
 		return ob_get_clean();
+	}
+
+	/**
+	 * Render the month view shortcode with FullCalendar.
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string HTML output.
+	 */
+	public static function render_month_view( $atts = array() ) { // phpcs:ignore
+		wp_enqueue_style( 'fullcalendar-css' );
+		wp_enqueue_style( 'organizer-calendar' ); // For custom overrides.
+		wp_enqueue_script( 'fullcalendar-js' );
+
+		$rest_url = rest_url( 'organizer/v1/events' );
+		$site_url = site_url();
+
+		// Inline script to initialize FullCalendar.
+		$inline_script = <<<JS
+		document.addEventListener('DOMContentLoaded', function() {
+			var calendarEl = document.getElementById('organizer-fullcalendar');
+			if (calendarEl) {
+				var calendar = new FullCalendar.Calendar(calendarEl, {
+					initialView: 'dayGridMonth',
+					headerToolbar: {
+						left: 'prev,next today',
+						center: 'title',
+						right: 'dayGridMonth,dayGridWeek'
+					},
+					events: {
+						url: '{$rest_url}',
+						failure: function() {
+							alert('There was an error while fetching events!');
+						}
+					},
+					eventClick: function(info) {
+						if (info.event.url) {
+							window.location.href = info.event.url;
+							return false;
+						}
+					},
+					height: 'auto',
+					contentHeight: 'auto'
+				});
+				calendar.render();
+			}
+		});
+		JS;
+
+		wp_add_inline_script( 'fullcalendar-js', $inline_script );
+
+		return '<div id="organizer-fullcalendar"></div>';
 	}
 }

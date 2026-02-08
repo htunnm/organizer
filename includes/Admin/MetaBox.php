@@ -23,6 +23,10 @@ class MetaBox {
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_meta_boxes' ) );
 		add_action( 'save_post', array( __CLASS__, 'save_post' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
+		add_filter( 'manage_organizer_event_posts_columns', array( __CLASS__, 'add_city_column' ) );
+		add_action( 'manage_organizer_event_posts_custom_column', array( __CLASS__, 'render_city_column' ), 10, 2 );
+		add_filter( 'manage_edit-organizer_event_sortable_columns', array( __CLASS__, 'make_city_column_sortable' ) );
+		add_action( 'pre_get_posts', array( __CLASS__, 'sort_by_city' ) );
 	}
 
 	/**
@@ -76,8 +80,13 @@ class MetaBox {
 		if ( ! is_array( $custom_fields ) ) {
 			$custom_fields = array();
 		}
-		$price = get_post_meta( $post->ID, '_organizer_event_price', true );
-		$venue = get_post_meta( $post->ID, '_organizer_event_venue', true );
+		$price         = get_post_meta( $post->ID, '_organizer_event_price', true );
+		$capacity      = get_post_meta( $post->ID, '_organizer_event_capacity', true );
+		$venue         = get_post_meta( $post->ID, '_organizer_event_venue', true );
+		$city          = get_post_meta( $post->ID, '_event_city', true );
+		$icon_type     = get_post_meta( $post->ID, '_event_icon_type', true );
+		$duration_days = get_post_meta( $post->ID, '_event_duration_days', true );
+		$duration_days = get_post_meta( $post->ID, '_event_duration_days', true );
 		?>
 		<p>
 			<label for="organizer_recurrence_type"><?php esc_html_e( 'Recurrence Type:', 'organizer' ); ?></label>
@@ -98,11 +107,29 @@ class MetaBox {
 		</p>
 		<p>
 			<label for="organizer_event_price"><?php esc_html_e( 'Price:', 'organizer' ); ?></label>
-			<input type="number" step="0.01" name="organizer_event_price" id="organizer_event_price" value="<?php echo esc_attr( $price ); ?>">
+			<input type="text" name="organizer_event_price" id="organizer_event_price" value="<?php echo esc_attr( $price ); ?>" placeholder="<?php esc_attr_e( 'Enter price or \'Free\'', 'organizer' ); ?>">
+		</p>
+		<p>
+			<label for="organizer_event_capacity"><?php esc_html_e( 'Total Capacity:', 'organizer' ); ?></label>
+			<input type="number" name="organizer_event_capacity" id="organizer_event_capacity" value="<?php echo esc_attr( $capacity ); ?>" min="-1" placeholder="<?php esc_attr_e( '-1 for Unlimited', 'organizer' ); ?>">
 		</p>
 		<p>
 			<label for="organizer_event_venue"><?php esc_html_e( 'Venue:', 'organizer' ); ?></label>
 			<input type="text" name="organizer_event_venue" id="organizer_event_venue" value="<?php echo esc_attr( $venue ); ?>" class="regular-text">
+		</p>
+		<p>
+			<label for="organizer_event_city"><?php esc_html_e( 'City:', 'organizer' ); ?></label>
+			<input type="text" name="organizer_event_city" id="organizer_event_city" value="<?php echo esc_attr( $city ); ?>" class="regular-text">
+		</p>
+		<p>
+			<label for="organizer_event_icon_type"><?php esc_html_e( 'Calendar Card Icon:', 'organizer' ); ?></label>
+			<select name="organizer_event_icon_type" id="organizer_event_icon_type">
+				<option value=""><?php esc_html_e( 'Auto-detect', 'organizer' ); ?></option>
+				<option value="dashicons-location" <?php selected( $icon_type, 'dashicons-location' ); ?>><?php esc_html_e( 'Location (Pin)', 'organizer' ); ?></option>
+				<option value="dashicons-video-alt" <?php selected( $icon_type, 'dashicons-video-alt' ); ?>><?php esc_html_e( 'Video/Online', 'organizer' ); ?></option>
+				<option value="dashicons-groups" <?php selected( $icon_type, 'dashicons-groups' ); ?>><?php esc_html_e( 'Workshop/Group', 'organizer' ); ?></option>
+			</select>
+			<p class="description"><?php esc_html_e( 'Choose the icon to display on calendar cards. Leave blank to auto-detect based on venue.', 'organizer' ); ?></p>
 		</p>
 		<div id="organizer_recurrence_options">
 			<p>
@@ -123,6 +150,13 @@ class MetaBox {
 			<p>
 				<label for="organizer_end_date"><?php esc_html_e( 'End Date:', 'organizer' ); ?></label>
 				<input type="date" name="organizer_recurrence_rules[end_date]" id="organizer_end_date" value="<?php echo esc_attr( $end_date ); ?>">
+			</p>
+		</div>
+
+		<div id="organizer_duration_days_wrapper" style="<?php echo 'single' !== $type ? 'display: none;' : ''; ?>">
+			<p>
+				<label for="organizer_duration_days"><?php esc_html_e( 'Duration (Days):', 'organizer' ); ?></label>
+				<input type="number" name="organizer_duration_days" id="organizer_duration_days" value="<?php echo esc_attr( $duration_days ); ?>" min="0" step="1" placeholder="<?php esc_attr_e( 'Number of days', 'organizer' ); ?>">
 			</p>
 		</div>
 		<?php
@@ -184,12 +218,12 @@ class MetaBox {
 		<?php
 		// Email Notifications Section.
 		?>
-		// Feedback Section.
+		<hr>
+		<h4><?php esc_html_e( 'Feedback', 'organizer' ); ?></h4>
+		<?php
 		$avg_rating = Feedback::get_average_rating( $post->ID );
 		$feedbacks  = Feedback::get_by_event( $post->ID );
 		?>
-		<hr>
-		<h4><?php esc_html_e( 'Feedback', 'organizer' ); ?></h4>
 		<p><strong><?php esc_html_e( 'Average Rating:', 'organizer' ); ?></strong> <?php echo esc_html( number_format( $avg_rating, 1 ) ); ?> / 5</p>
 		<?php if ( ! empty( $feedbacks ) ) : ?>
 			<ul>
@@ -202,6 +236,22 @@ class MetaBox {
 				<?php endforeach; ?>
 			</ul>
 		<?php endif; ?>
+		<?php
+		// Add inline script to toggle duration field visibility.
+		?>
+		<script type="text/javascript">
+		(function() {
+			const recurrenceTypeSelect = document.getElementById( 'organizer_recurrence_type' );
+			const durationWrapper = document.getElementById( 'organizer_duration_days_wrapper' );
+
+			if ( recurrenceTypeSelect && durationWrapper ) {
+				// Toggle visibility on change.
+				recurrenceTypeSelect.addEventListener( 'change', function() {
+					durationWrapper.style.display = 'single' === this.value ? 'block' : 'none';
+				});
+			}
+		})();
+		</script>
 		<?php
 	}
 
@@ -260,9 +310,28 @@ class MetaBox {
 			update_post_meta( $post_id, '_organizer_event_price', sanitize_text_field( wp_unslash( $_POST['organizer_event_price'] ) ) );
 		}
 
+		if ( isset( $_POST['organizer_event_capacity'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			update_post_meta( $post_id, '_organizer_event_capacity', intval( $_POST['organizer_event_capacity'] ) );
+		}
+
 		if ( isset( $_POST['organizer_event_venue'] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			update_post_meta( $post_id, '_organizer_event_venue', sanitize_text_field( wp_unslash( $_POST['organizer_event_venue'] ) ) );
+		}
+
+		if ( isset( $_POST['organizer_event_city'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			update_post_meta( $post_id, '_event_city', sanitize_text_field( wp_unslash( $_POST['organizer_event_city'] ) ) );
+		}
+		if ( isset( $_POST['organizer_event_icon_type'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedInput.InputNotSanitized
+			update_post_meta( $post_id, '_event_icon_type', sanitize_text_field( wp_unslash( $_POST['organizer_event_icon_type'] ) ) );
+		}
+
+		if ( isset( $_POST['organizer_duration_days'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedInput.InputNotSanitized
+			update_post_meta( $post_id, '_event_duration_days', intval( wp_unslash( $_POST['organizer_duration_days'] ) ) );
 		}
 
 		if ( isset( $_POST['organizer_custom_fields'] ) ) {
@@ -289,6 +358,56 @@ class MetaBox {
 				update_post_meta( $post_id, "_organizer_email_{$key}_subject", $subject );
 				update_post_meta( $post_id, "_organizer_email_{$key}_message", $message );
 			}
+		}
+	}
+
+	/**
+	 * Add City column to events list.
+	 *
+	 * @param array $columns Columns.
+	 * @return array Modified columns.
+	 */
+	public static function add_city_column( $columns ) {
+		$columns['city'] = __( 'City', 'organizer' );
+		return $columns;
+	}
+
+	/**
+	 * Render City column.
+	 *
+	 * @param string $column  Column name.
+	 * @param int    $post_id Post ID.
+	 */
+	public static function render_city_column( $column, $post_id ) {
+		if ( 'city' === $column ) {
+			echo esc_html( get_post_meta( $post_id, '_event_city', true ) );
+		}
+	}
+
+	/**
+	 * Make City column sortable.
+	 *
+	 * @param array $columns Sortable columns.
+	 * @return array Modified columns.
+	 */
+	public static function make_city_column_sortable( $columns ) {
+		$columns['city'] = 'city';
+		return $columns;
+	}
+
+	/**
+	 * Sort events by city.
+	 *
+	 * @param \WP_Query $query Query object.
+	 */
+	public static function sort_by_city( $query ) {
+		if ( ! is_admin() || ! $query->is_main_query() ) {
+			return;
+		}
+
+		if ( 'organizer_event' === $query->get( 'post_type' ) && 'city' === $query->get( 'orderby' ) ) {
+			$query->set( 'meta_key', '_event_city' );
+			$query->set( 'orderby', 'meta_value' );
 		}
 	}
 }

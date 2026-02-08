@@ -24,9 +24,10 @@ class Settings {
 	 * Add the admin menu.
 	 */
 	public static function add_admin_menu() {
-		add_options_page(
+		add_submenu_page(
+			'edit.php?post_type=organizer_event',
 			__( 'Organizer Settings', 'organizer' ),
-			__( 'Organizer', 'organizer' ),
+			__( 'Settings', 'organizer' ),
 			'manage_options',
 			'organizer-settings',
 			array( __CLASS__, 'render_settings_page' )
@@ -53,6 +54,15 @@ class Settings {
 			array( __CLASS__, 'render_events_per_page_field' ),
 			'organizer-settings',
 			'organizer_general_section'
+		);
+
+		add_settings_field(
+			'organizer_registration_url',
+			__( 'Registration URL', 'organizer' ),
+			array( __CLASS__, 'render_text_field' ),
+			'organizer-settings',
+			'organizer_general_section',
+			array( 'id' => 'organizer_registration_url' )
 		);
 
 		add_settings_field(
@@ -102,6 +112,24 @@ class Settings {
 			'organizer-settings',
 			'organizer_payment_section',
 			array( 'id' => 'organizer_stripe_secret_key' )
+		);
+
+		add_settings_field(
+			'organizer_recaptcha_site_key',
+			__( 'reCAPTCHA Site Key', 'organizer' ),
+			array( __CLASS__, 'render_text_field' ),
+			'organizer-settings',
+			'organizer_payment_section',
+			array( 'id' => 'organizer_recaptcha_site_key' )
+		);
+
+		add_settings_field(
+			'organizer_recaptcha_secret_key',
+			__( 'reCAPTCHA Secret Key', 'organizer' ),
+			array( __CLASS__, 'render_text_field' ),
+			'organizer-settings',
+			'organizer_payment_section',
+			array( 'id' => 'organizer_recaptcha_secret_key' )
 		);
 
 		add_settings_field(

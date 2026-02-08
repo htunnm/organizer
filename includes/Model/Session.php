@@ -128,9 +128,21 @@ class Session {
 			$args[]  = $filters['end_date'] . ' 23:59:59';
 		}
 
+		if ( ! empty( $filters['city'] ) ) {
+			$join[]  = "INNER JOIN {$wpdb->prefix}postmeta pm_city ON s.event_id = pm_city.post_id AND pm_city.meta_key = '_event_city'";
+			$where[] = 'pm_city.meta_value = %s';
+			$args[]  = $filters['city'];
+		}
+
+		if ( ! empty( $filters['duration_days'] ) ) {
+			$join[]  = "INNER JOIN {$wpdb->prefix}postmeta pm_duration ON s.event_id = pm_duration.post_id AND pm_duration.meta_key = '_event_duration_days'";
+			$where[] = 'pm_duration.meta_value = %s';
+			$args[]  = (string) $filters['duration_days'];
+		}
+
 		$where_sql = implode( ' AND ', $where );
 		$join_sql  = implode( ' ', array_unique( $join ) );
-		$sql       = "SELECT s.* FROM $table_name s $join_sql WHERE $where_sql ORDER BY s.$orderby $order LIMIT %d OFFSET %d";
+		$sql       = "SELECT DISTINCT s.* FROM $table_name s $join_sql WHERE $where_sql ORDER BY s.$orderby $order LIMIT %d OFFSET %d";
 		$args[]    = $limit;
 		$args[]    = $offset;
 

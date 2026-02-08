@@ -18,6 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $price         = (float) get_post_meta( $event_id, '_organizer_event_price', true );
 $custom_fields = get_post_meta( $event_id, '_organizer_custom_fields', true );
+$options       = get_option( 'organizer_options' );
+$site_key      = isset( $options['organizer_recaptcha_site_key'] ) ? $options['organizer_recaptcha_site_key'] : '';
 ?>
 <div class="organizer-registration-form">
 	<?php
@@ -102,6 +104,9 @@ $custom_fields = get_post_meta( $event_id, '_organizer_custom_fields', true );
 			<?php endif; ?>
 			<div class="organizer-form-actions">
 				<button type="button" class="button organizer-prev-step"><?php esc_html_e( 'Back', 'organizer' ); ?></button>
+				<?php if ( ! empty( $site_key ) ) : ?>
+					<div class="g-recaptcha" data-sitekey="<?php echo esc_attr( $site_key ); ?>"></div>
+				<?php endif; ?>
 				<button type="submit" class="button button-primary"><?php esc_html_e( 'Register', 'organizer' ); ?></button>
 			</div>
 		</div>

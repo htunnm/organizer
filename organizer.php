@@ -22,6 +22,7 @@ use Organizer\Admin\ImportPage;
 use Organizer\Admin\DiscountCodesPage;
 use Organizer\Admin\WaitlistPage;
 use Organizer\Admin\RevenuePage;
+use Organizer\Admin\SystemStatusPage;
 use Organizer\Admin\ExportHandler;
 use Organizer\Admin\MetaBox;
 use Organizer\Admin\RegistrationsPage;
@@ -48,6 +49,7 @@ use Organizer\Rest\RSVPController;
 use Organizer\Rest\SessionController;
 use Organizer\Rest\CheckinController;
 use Organizer\Rest\WaitlistController;
+use Organizer\Api\CalendarAPI;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -89,6 +91,7 @@ class Plugin {
 				$session_controller->register_routes();
 				$checkin_controller = new CheckinController();
 				$checkin_controller->register_routes();
+				CalendarAPI::register_routes();
 			}
 		);
 		Settings::init();
@@ -107,6 +110,7 @@ class Plugin {
 		WaitlistPage::init();
 		RevenuePage::init();
 		CalendarBlock::init();
+		SystemStatusPage::init();
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'organizer', RemindersCommand::class );
